@@ -1,15 +1,18 @@
 <?php
-	function conecta_db() {
-		$db_name = "bookington";
-		$user = "root";
-		$pass = "";
-		$server = "localhost";
 
-		try {
-			$conexao = new mysqli($server, $user, $pass, $db_name);
-			return $conexao;
-		} catch (mysqli_sql_exception $e) {
-			return false;
-		}
-	}
-?>
+function conecta_db() {
+    $host   = 'localhost';
+    $user   = 'root';
+    $pass   = '';
+    $dbname = 'bookington';
+
+    $conexao = new mysqli($host, $user, $pass, $dbname);
+
+    if ($conexao->connect_error) {
+        return false;
+    }
+
+    $conexao->set_charset('utf8mb4');
+
+    return $conexao;
+}
