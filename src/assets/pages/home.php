@@ -1,5 +1,5 @@
 <?php
-    include('conecta_db.php');
+    include('../../../conecta_db.php');
 
     session_start();
 
@@ -80,7 +80,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookington | Início</title>
-    <link rel="stylesheet" href="src/styles/pages/index/cadastro.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../styles/pages/home_cliente/home_cliente.css?v=<?php echo time(); ?>">
 </head>
 <body>
 
