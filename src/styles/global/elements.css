@@ -9,7 +9,6 @@ html, body {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background-image: url('../../assets/images/background-image/background-image.png');
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -30,11 +29,12 @@ body.swal2-height-auto {
 /* --- top navigation menu --- */
 
 .nav {
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 35px;
-    background-color: var(--purple-color);
+    padding: 10px 20px;
+    background-color: var(--dark-red);
     position: fixed;
     top: 0;
     left: 0;
@@ -67,27 +67,17 @@ body.swal2-height-auto {
     font-size: 16px;
 }
 
-.nav img {
-    max-width: 115px;
-    max-height: 60px;
+.logo {
+    width: auto;
+    height: 90px;
 }
 
-.profile-nav-img {
-    margin-left: auto;
-    border: #fff 3px solid;
-    border-radius: 50%;
-}
-
-.profile-nav-img img {
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    display: block;
+.logo-container {
+    flex-shrink: 0;
 }
 
 .btn {
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     color: white;
     padding: 12px 20px;
     border-radius: 10px;
@@ -100,12 +90,12 @@ body.swal2-height-auto {
 
 .btn:hover {
     background-color: rgb(252, 252, 252);
-    color: var(--purple-color);
+    color: var(--dark-red);
     padding: 14px 22px;   
 }
 
 .nav .profile-image {
-    background-color: var(--dark-purple);
+    background-color: var(--dark-red);
     border-radius: 50%;
     padding: 12px;
     display: flex;
@@ -120,13 +110,6 @@ body.swal2-height-auto {
 .nav .profile-image:hover {
     background-color: #54008c;
     transform: scale(1.1);
-}
-
-.nav .profile-image img {
-    width: 26px;
-    height: 26px;
-    object-fit: contain;
-    pointer-events: none;
 }
 
 .nav .logout-button {
@@ -168,12 +151,13 @@ body.swal2-height-auto {
 /* --- FOOTER --- */
 
 .footer {
-    background-color: white;
+    background-color: var(--dark-red);
     text-align: center;
     padding: 25px;
     width: 100%;
     margin-top: auto;
     position: relative;
+    color: white;
 }
 
 /* --- INPUT REQUIRED SPAN --- */
@@ -197,7 +181,7 @@ body.swal2-height-auto {
 
 .back-btn a {
     display: inline-block;
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     color: white;
     padding: 10px 30px;
     border-radius: 10px;
@@ -209,7 +193,7 @@ body.swal2-height-auto {
 }
 
 .back-btn a:hover {
-    background-color: var(--dark-purple);
+    background-color: var(--dark-red);
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -272,7 +256,7 @@ body.swal2-height-auto {
 /* --- LIKE BUTTON --- */
 
 .like-button.impulsionado {
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     color: white;
 }
 
@@ -288,7 +272,7 @@ body.swal2-height-auto {
     right: 40px;
     width: 60px;
     height: 60px;
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     color: white;
     font-size: 36px;
     border: none;
@@ -303,7 +287,7 @@ body.swal2-height-auto {
 }
 
 .floating-button:hover {
-    background-color: var(--dark-purple);
+    background-color: var(--dark-red);
     transform: scale(1.1);
 }
 

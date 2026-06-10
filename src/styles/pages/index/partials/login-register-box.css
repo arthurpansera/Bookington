@@ -1,10 +1,9 @@
-
 .register-button, .login-button{
     display: none;
     text-align: center;
     margin: 40px 30px 20px auto;
     font-size: 1.2rem;
-    color: var(--purple-color);
+    color: var(--dark-red);
     cursor: pointer;
     transition: color 0.3s ease;
     width: fit-content;
@@ -69,6 +68,7 @@
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     padding-left: 13px;
 }
+
 .label-input {
     margin: 0 18%;
 }
@@ -78,7 +78,7 @@
     text-align: center;
     margin: 10px auto 20px auto;
     font-size: 0.9rem;
-    color: var(--purple-color);
+    color: var(--dark-red);
     cursor: pointer;
     transition: color 0.3s ease;
     width: fit-content;
@@ -98,10 +98,10 @@
     margin-bottom: 60px;
     width: 45%;
     height: 45px;
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     color: white;
     border-radius: 8px;
-    border: 1px solid var(--dark-purple);
+    border: 1px solid var(--dark-red);
     font-size: 18px;
     transition-duration: 0.4s;
     cursor: pointer;
@@ -109,7 +109,7 @@
 }
 
 .login-btn:hover {
-    background-color: var(--dark-purple);
+    background-color: var(--dark-red);
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3)
 }
 
@@ -127,4 +127,3 @@
     margin: 1rem 0;
     margin-bottom: 2.7rem;
 }
-

@@ -34,7 +34,7 @@
 
 .left-menu ul li a:hover {
     color: white;
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     border-radius: 10px;
     transition: background-color 0.5s ease, color 0.5s ease;
 }
@@ -141,12 +141,11 @@
     .mobile-user-options ul li a:hover,
     .mobile-user-options form button:hover {
         color: white;
-        background-color: var(--purple-color);
+        background-color: var(--dark-red);
         border-radius: 10px;
         transition: background-color 0.5s ease, color 0.5s ease;
     }
 }
-
 
 @media (min-width: 992px) {
   .menu-toggle,

@@ -98,7 +98,7 @@ select.mid-inputUser:focus {
 }
 
 select.mid-inputUser option:checked {
-    color: var(--dark-purple);
+    color: var(--dark-red);
 }
 
 select.mid-inputUser option {
@@ -116,17 +116,17 @@ select.mid-inputUser option {
     margin-bottom: 100px;
     width: 45%;
     height: 45px;
-    background-color: var(--purple-color);
+    background-color: var(--dark-red);
     color: white;
     border-radius: 8px;
-    border: 1px solid var(--dark-purple);
+    border: 1px solid var(--dark-red);
     font-size: 18px;
     transition-duration: 0.4s;
     cursor: pointer;
 }
 
 .register-btn:hover {
-    background-color: var(--dark-purple);
+    background-color: var(--dark-red);
     box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3)
 }
 

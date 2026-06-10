@@ -111,8 +111,8 @@
     <header>
         <div class="container">
             <nav class="nav">
-                <a href="index.php">
-                    <img src="../images/logo-petmap/white-logo.png" alt="Logo PetMap">
+                <a href="index.php" class="logo-container">
+                    <img src="src/assets/images/logo-bookington.png" alt="Logo Bookington" class="logo">
                 </a>
             </nav>
         </div> 
@@ -121,19 +121,12 @@
         <section class="box-container">
             <section class="login-content show" id="login-content">
                 <section class="no-account">
-                    <h1>Bem-vindo ao <br> PetMap!</h1>
+                    <h1>Bem-vindo ao <br> Bookington!</h1>
                     <h3>Ainda não possui uma conta?</h3>
                     <a href="#" class="show-register">Cadastrar-se</a>
                 </section>
     
                 <section class="login-box">
-                    <div class="register-back-btn">
-                        <div class="back-btn"> 
-                            <a href="index.php">Voltar</a>
-                        </div>
-                        <a href="#" class="show-register register-button ">Cadastrar-se</a>
-                    </div>
-
                     <h1>Login</h1>
                     <form id="form" name="form" method="POST" action="login.php">
                         <label for="email" class="label-input">E-mail: </label>
@@ -145,37 +138,11 @@
                     </form>
                 </section>
             </section>
-    
-            <section class="register-content hidden" id="register-content">
-                <section class="register-box">
-
-                    <div class="register-back-btn">
-                        <div class="back-btn">
-                            <a href="../../../index.php">Voltar</a>
-                        </div>
-                        <a class="show-login login-button">Realizar Login</a>
-                    </div>
-
-                    <h1>Selecione o tipo de Cadastro</h1>
-                    
-                    <div class="user-options-box">
-                        <a class="user-options" href="./register-user.php">Cidadão</a>
-                        <a class="user-options" href="./register-ong.php">ONG</a>
-                        <a class="user-options" href="./register-adm.php">Moderador</a>
-                    </div>
-                </section>
-    
-                <section class="has-account">
-                    <h1>Bem-vindo ao <br> PetMap!</h1>
-                    <h3>Já possui uma conta?</h3>
-                    <a class="show-login">Login</a>
-                </section>
-            </section>
         </section>
     </section>
 
     <footer class="footer">
-        <p>&copy;2025 - PetMap - Onde tem pet, tem PetMap!. Todos os direitos reservados.</p>
+        <p>&copy;2026 - Bookington - Reservas inteligentes, resultados eficientes. Todos os direitos reservados.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
