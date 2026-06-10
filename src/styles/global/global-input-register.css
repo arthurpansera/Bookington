@@ -112,8 +112,9 @@ select.mid-inputUser option {
 .register-btn {
     display: flex;
     align-items: center;
-    margin: 40px auto;
-    margin-bottom: 100px;
+    margin: 0px auto;
+    margin-top: 70px;
+    margin-bottom: 80px;
     width: 45%;
     height: 45px;
     background-color: var(--dark-red);

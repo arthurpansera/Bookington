@@ -123,7 +123,7 @@
                 <section class="no-account">
                     <h1>Bem-vindo ao <br> Bookington!</h1>
                     <h3>Ainda não possui uma conta?</h3>
-                    <a href="#" class="show-register">Cadastrar-se</a>
+                    <a href="src/assets/pages/cadastro_cliente.php" class="show-register">Cadastrar-se</a>
                 </section>
     
                 <section class="login-box">
