@@ -1,0 +1,130 @@
+
+.register-button, .login-button{
+    display: none;
+    text-align: center;
+    margin: 40px 30px 20px auto;
+    font-size: 1.2rem;
+    color: var(--purple-color);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    width: fit-content;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: transform 0.2s;
+}
+
+.register-button:hover, .login-button:hover {
+    transform: scale(1.05);
+}
+
+.register-back-btn{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-align: center;
+}
+
+.login-box, .register-box {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+
+.login-box h1, .register-box h1 {
+    font-size: clamp(2rem, 2.4rem, 4rem);
+    padding: 40px 0px;
+    text-align: center;
+}
+
+.login-box .back-btn {
+    justify-content: flex-end;
+    margin-right: 40px;
+}
+
+.input-box, .user-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto;
+    margin-bottom: 10%;
+    width: 65%;
+    height: 45px;
+    background-color: var(--light-grey);
+    border-radius: 8px;
+    border: 1px solid var(--dark-grey);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    padding-left: 13px;
+}
+
+.input-box-1{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto;
+    width: 65%;
+    height: 45px;
+    background-color: var(--light-grey);
+    border-radius: 8px;
+    border: 1px solid var(--dark-grey);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    padding-left: 13px;
+}
+.label-input {
+    margin: 0 18%;
+}
+
+.forgot-password {
+    display: block;
+    text-align: center;
+    margin: 10px auto 20px auto;
+    font-size: 0.9rem;
+    color: var(--purple-color);
+    cursor: pointer;
+    transition: color 0.3s ease;
+    width: fit-content;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: transform 0.2s;
+}
+
+.forgot-password:hover {
+    transform: scale(1.05);
+}
+
+.login-btn {
+    display: flex;
+    align-items: center;
+    margin: 40px auto;
+    margin-bottom: 60px;
+    width: 45%;
+    height: 45px;
+    background-color: var(--purple-color);
+    color: white;
+    border-radius: 8px;
+    border: 1px solid var(--dark-purple);
+    font-size: 18px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+    margin-bottom: 4.9rem;
+}
+
+.login-btn:hover {
+    background-color: var(--dark-purple);
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3)
+}
+
+.user-options {
+    font-size: 24px;
+    color: rgb(106, 106, 106);
+}
+
+.user-options:hover {
+    background-color: rgb(215, 215, 215);
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3)
+}
+
+.user-options-box {
+    margin: 1rem 0;
+    margin-bottom: 2.7rem;
+}
+

@@ -1,0 +1,119 @@
+.search-bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 25px;
+    padding: 5px 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.search-bar input[type="text"] {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 5px 12px;
+    border-radius: 25px;
+    background: transparent;
+}
+
+.search-bar button {
+    border: none;
+    background-color: white;
+    font-size: 16px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.user-suggestions {
+    position: absolute;
+    top: calc(50% + 30px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 400px;
+    max-height: 120px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    z-index: 999;
+    font-size: 14px;
+    display: none;
+    padding: 5px 10px;
+}
+
+.user-suggestions .suggestion-item {
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+.user-suggestions .suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.user-suggestions .suggestion-item:hover {
+    background-color: #ececec;
+    transition: background-color 0.2s ease;
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .search-bar {
+    max-width: 300px;
+    width: 90%;
+    padding: 5px 8px;
+  }
+
+  .search-bar input[type="text"] {
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+
+  .search-bar button {
+    font-size: 14px;
+    padding: 5px 10px;
+  }
+
+  .user-suggestions {
+    width: 90%;
+    max-height: 100px;
+    top: calc(50% + 28px);
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar {
+    max-width: 260px;
+    width: 95%;
+    padding: 4px 6px;
+    border-radius: 20px;
+  }
+
+  .search-bar input[type="text"] {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .search-bar button {
+    font-size: 13px;
+    padding: 4px 8px;
+  }
+
+  .user-suggestions {
+    width: 95%;
+    max-height: 90px;
+    top: calc(50% + 25px);
+    font-size: 13px;
+  }
+
+  .user-suggestions .suggestion-item {
+    padding: 6px 8px;
+  }
+}

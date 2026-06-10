@@ -1,95 +1,185 @@
 <?php
-    $pageTitle = 'Bookington – Login';
-    require_once 'bookington/includes/auth.php';
-    startSession();
+    include('conecta_db.php');
 
-    if (isLoggedIn()) {
-        header('Location: dashboard.php');
-        exit;
+    session_start();
+
+    if (isset($_GET['expired']) && $_GET['expired'] == 1) {
+        $_SESSION['error_message'] = 'Sua sessão expirou por inatividade.';
+    }
+    
+    if (isset($_GET['reset']) && $_GET['reset'] === 'success') {
+    $_SESSION['success_message'] = "Senha redefinida com sucesso!";
     }
 
-    $error = '';
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $email = trim($_POST['email'] ?? '');
-        $senha = $_POST['senha'] ?? '';
-        if ($email && $senha) {
-            $pdo = getDB();
-            $stmt = $pdo->prepare("SELECT * FROM clientes WHERE email = ?");
-            $stmt->execute([$email]);
-            $user = $stmt->fetch();
-            if ($user && password_verify($senha, $user['senha'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['login_success'] = true;
-                header('Location: dashboard.php');
-                exit;
+    if (isset($_SESSION['login_error'])) {
+        $_SESSION['error_message'] = 'Usuário e/ou senha incorretos.';
+        unset($_SESSION['login_error']);
+    }
+
+    if (isset($_SESSION['error_message'])) {
+        $mensagem = addslashes($_SESSION['error_message']);
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: 'Erro!',
+                    text: '{$mensagem}',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#7A00CC',
+                    allowOutsideClick: true,
+                    heightAuto: false
+                });
+            });
+        </script>";
+        unset($_SESSION['error_message']);
+    }
+
+    if (isset($_SESSION['success_message'])) {
+        echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: '{$_SESSION['success_message']}',
+                    icon: 'success',
+                    confirmButtonText: 'Ok',
+                    confirmButtonColor: '#7A00CC',
+                    allowOutsideClick: true,
+                    heightAuto: false
+                });
+            });
+        </script>";
+        unset($_SESSION['success_message']);
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+
+        $obj = conecta_db();
+
+        if (!$obj) {
+            header("Location: database-error.php");
+            exit;
+        }
+
+        $query = "SELECT u.id_usuario, u.senha, p.status_perfil
+                FROM usuario u
+                JOIN contato c ON u.id_usuario = c.id_usuario 
+                JOIN perfil p ON u.id_usuario = p.id_usuario
+                WHERE c.email = ?";
+        $stmt = $obj->prepare($query);
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+
+            if (password_verify($password, $user['senha'])) {
+                if ($user['status_perfil'] === 'banido') {
+                    $_SESSION['error_message'] = "Sua conta foi banida. Por favor, entre em contato com o suporte.";
+                    header("Location: login.php");
+                    exit();
+                }
+
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['id_usuario'] = $user['id_usuario'];
+                header("Location: ../../../index.php");
+                exit();
             } else {
-                $error = 'E-mail ou senha inválidos.';
+                $_SESSION['error_message'] = "Usuário e/ou senha incorretos";
+                header("Location: login.php");
+                exit();
             }
         } else {
-            $error = 'Preencha todos os campos.';
+            $_SESSION['error_message'] = "Usuário e/ou senha incorretos";
+            header("Location: login.php");
+            exit();
         }
     }
 ?>
+
 <!DOCTYPE html>
-<html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title><?= $pageTitle ?></title>
-        <link rel="stylesheet" href="bookington/css/style.css">
-    </head>
-    <body>
-        <nav class="navbar">
-            <a href="index.php" class="navbar-brand">
-                <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="8" width="30" height="28" rx="4" stroke="white" stroke-width="2"/>
-                    <rect x="12" y="4" width="3" height="8" rx="1.5" fill="white"/>
-                    <rect x="25" y="4" width="3" height="8" rx="1.5" fill="white"/>
-                    <line x1="5" y1="17" x2="35" y2="17" stroke="white" stroke-width="2"/>
-                    <rect x="10" y="22" width="5" height="4" rx="1" fill="white"/>
-                    <rect x="18" y="22" width="5" height="4" rx="1" fill="white"/>
-                    <rect x="26" y="22" width="5" height="4" rx="1" fill="white"/>
-                </svg>
-                Bookington
-            </a>
-        </nav>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookington | Login</title>
+    <link rel="stylesheet" href="src/styles/pages/index/index.css?v=<?php echo time(); ?>">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="nav">
+                <a href="index.php">
+                    <img src="../images/logo-petmap/white-logo.png" alt="Logo PetMap">
+                </a>
+            </nav>
+        </div> 
+    </header>
+    <section class="main-content">
+        <section class="box-container">
+            <section class="login-content show" id="login-content">
+                <section class="no-account">
+                    <h1>Bem-vindo ao <br> PetMap!</h1>
+                    <h3>Ainda não possui uma conta?</h3>
+                    <a href="#" class="show-register">Cadastrar-se</a>
+                </section>
+    
+                <section class="login-box">
+                    <div class="register-back-btn">
+                        <div class="back-btn"> 
+                            <a href="index.php">Voltar</a>
+                        </div>
+                        <a href="#" class="show-register register-button ">Cadastrar-se</a>
+                    </div>
 
-        <div class="page-wrapper">
-            <div class="login-card">
-                <div class="login-left">
-                    <h2>Bem-vindo ao Bookington!</h2>
-                    <p>Ainda não possui uma conta?</p>
-                    <a href="cadastro_cliente.php" class="btn btn-outline-white">Cadastre-se</a>
-                </div>
-                <div class="login-right">
-                    <h3>Login</h3>
-                    <?php if ($error): ?>
-                        <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
-                    <?php endif; ?>
-                    <form method="POST" action="">
-                        <div class="form-group" style="margin-bottom:1rem">
-                            <div class="input-wrap">
-                                <input type="email" name="email" placeholder="exemplo@gmail.com" required autocomplete="email">
-                                <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom:1.5rem">
-                            <div class="input-wrap">
-                                <input type="password" id="login-senha" name="senha" placeholder="Insira sua senha" required autocomplete="current-password">
-                                <button type="button" id="toggle-login-pass" class="toggle-password">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary" style="width:100%">Login</button>
+                    <h1>Login</h1>
+                    <form id="form" name="form" method="POST" action="login.php">
+                        <label for="email" class="label-input">E-mail: </label>
+                        <input type="text" name="email" id="email" class="input-box" placeholder="exemplo@gmail.com" required>
+                        <label for="password" class="label-input">Senha:</label>
+                        <input type="password" name="password" id="password" class="input-box-1" placeholder="Insira sua senha" required>
+                        <a class="forgot-password" href="forgot-password.php">Esqueci minha senha</a>
+                        <input type="submit" value="Login" class="login-btn">
                     </form>
-                </div>
-            </div>
-        </div>
+                </section>
+            </section>
+    
+            <section class="register-content hidden" id="register-content">
+                <section class="register-box">
 
-        <footer class="footer">
-            &copy; 2026 – Bookington – Reservas inteligentes, resultados eficientes. Todos os direitos reservados.
-        </footer>
-        <script src="js/app.js"></script>
-    </body>
+                    <div class="register-back-btn">
+                        <div class="back-btn">
+                            <a href="../../../index.php">Voltar</a>
+                        </div>
+                        <a class="show-login login-button">Realizar Login</a>
+                    </div>
+
+                    <h1>Selecione o tipo de Cadastro</h1>
+                    
+                    <div class="user-options-box">
+                        <a class="user-options" href="./register-user.php">Cidadão</a>
+                        <a class="user-options" href="./register-ong.php">ONG</a>
+                        <a class="user-options" href="./register-adm.php">Moderador</a>
+                    </div>
+                </section>
+    
+                <section class="has-account">
+                    <h1>Bem-vindo ao <br> PetMap!</h1>
+                    <h3>Já possui uma conta?</h3>
+                    <a class="show-login">Login</a>
+                </section>
+            </section>
+        </section>
+    </section>
+
+    <footer class="footer">
+        <p>&copy;2025 - PetMap - Onde tem pet, tem PetMap!. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../../scripts/pages/login/login.js"></script>
+
+</body>
 </html>
