@@ -20,13 +20,13 @@ CREATE TABLE IF NOT EXISTS cliente (
     FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 
-CREATE TABLE empresa (
+CREATE TABLE IF NOT EXISTS empresa (
     id_empresa INT NOT NULL AUTO_INCREMENT,
     nome_empresa VARCHAR(255) NOT NULL,
     PRIMARY KEY (id_empresa)
 );
 
-CREATE TABLE funcionario (
+CREATE TABLE IF NOT EXISTS funcionario (
     id_funcionario INT NOT NULL AUTO_INCREMENT,
     id_usuario INT NOT NULL,
     id_empresa INT NOT NULL,
@@ -44,6 +44,6 @@ CREATE TABLE IF NOT EXISTS reserva (
     status_reserva ENUM('aberto','reservado','cancelado') NOT NULL DEFAULT 'aberto',
     criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id_reserva),
-    FOREIGN KEY (id_cliente) REFERENCES usuario(id_cliente) ON DELETE CASCADE,
+    FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE CASCADE,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa) ON DELETE CASCADE
 );

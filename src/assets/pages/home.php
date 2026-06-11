@@ -35,7 +35,7 @@
                     text: '{$mensagem}',
                     icon: 'success',
                     confirmButtonText: 'Ok',
-                    confirmButtonColor: '#6B1020',
+                    confirmButtonColor: '#77CD46',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -53,7 +53,6 @@
         exit;
     }
 
-    // Nome do usuário para a saudação
     $query = "SELECT nome FROM usuario WHERE id_usuario = ?";
     $stmt = $obj->prepare($query);
     $stmt->bind_param('i', $id_usuario);
@@ -62,15 +61,23 @@
     $usuario = $result->fetch_assoc();
     $primeiro_nome = $usuario ? explode(' ', $usuario['nome'])[0] : 'Usuário';
 
-    // Reservas do usuário
-    $query = "SELECT r.id_reserva, e.nome_empresa, r.data_reserva, r.hora_reserva, r.status_reserva
-              FROM reserva r
-              JOIN empresa e ON r.id_empresa = e.id_empresa
-              WHERE r.id_usuario = ?
-              ORDER BY r.data_reserva DESC, r.hora_reserva DESC";
+    $query_cliente = "SELECT id_cliente FROM cliente WHERE id_usuario = ?";
+    $stmt_cliente = $obj->prepare($query_cliente);
+    $stmt_cliente->bind_param("i", $id_usuario);
+    $stmt_cliente->execute();
+
+    $result_cliente = $stmt_cliente->get_result();
+    $cliente = $result_cliente->fetch_assoc();
+
+    $id_cliente = $cliente['id_cliente'] ?? 0;
+
+    $query = "SELECT r.id_reserva, e.nome_empresa, r.data_reserva, r.hora_reserva, r.status_reserva FROM reserva r
+            INNER JOIN empresa e ON r.id_empresa = e.id_empresa WHERE r.id_cliente = ? ORDER BY r.data_reserva DESC, r.hora_reserva DESC";
+
     $stmt = $obj->prepare($query);
-    $stmt->bind_param('i', $id_usuario);
+    $stmt->bind_param("i", $id_cliente);
     $stmt->execute();
+
     $reservas = $stmt->get_result();
 ?>
 
