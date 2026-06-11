@@ -204,7 +204,7 @@
                                 <td>
                                     <div class="td-actions">
                                         <?php if ($status !== 'cancelado'): ?>
-                                            <a href="editar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">Editar &#9998;</a>
+                                            <a href="editar_reserva_cliente.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">Editar &#9998;</a>
                                             <a href="cancelar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-cancel-res btn-sm" onclick="return confirm('Deseja realmente cancelar esta reserva?');">Cancelar &#10005;</a>
                                         <?php endif; ?>
                                         <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-view btn-sm">Ver &#9673;</a>
