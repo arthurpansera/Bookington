@@ -139,8 +139,8 @@
 
         <nav class="sidebar-nav">
             <a href="home_funcionario.php" class="active">Página Inicial</a>
-            <a href="cadastrar_funcionario.php">Cadastrar Novo Funcionário</a>
-            <a href="cadastrar_reserva.php">Cadastrar Nova Reserva</a>
+            <a href="cadastro_funcionario.php">Cadastrar Novo Funcionário</a>
+            <a href="solicitacao_reserva.php">Cadastrar Nova Reserva</a>
             <a href="calendario.php">Calendário</a>
         </nav>
     </aside>

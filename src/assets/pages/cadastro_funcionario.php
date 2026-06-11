@@ -1,5 +1,6 @@
 <?php
     include('../../../conecta_db.php');
+    include('buscar_nome.php');
 
     session_start();
 
@@ -152,18 +153,43 @@
     <header>
         <div class="container">
             <nav class="nav">
-                <a href="#" class="logo-container">
-                    <img src="../images/logo-bookington.png" alt="Logo Bookington" class="logo">
+
+                <a href="home_funcionario.php" class="logo-container">
+                    <img src="../images/logo-bookington.png"
+                        alt="Logo Bookington"
+                        class="logo">
                 </a>
+
+                <div class="user-info">
+                    <span class="welcome-message">
+                        Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
+                    </span>
+                    <div class="profile-dropdown">
+                        <button class="navbar-avatar" id="profileBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </button>
+
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" id="editarEmail">Alterar E-mail</a>
+                            <a href="#" id="editarSenha">Alterar Senha</a>
+                            <a href="#" onclick="confirmarLogout()">Sair</a>
+                        </div>
+                    </div>
+                </div>
+
             </nav>
-        </div> 
+        </div>
     </header>
 
     <section class="main-content">
         <section class="box-container">
             <section class="btn-back">
                 <div class="back-btn">
-                    <a href="#">Voltar</a>
+                    <a href="home_funcionario.php">Voltar</a>
                 </div>
             </section>
             
