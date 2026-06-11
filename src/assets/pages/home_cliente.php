@@ -85,23 +85,20 @@
         ->get_result()
         ->fetch_assoc()['total'];
 
-    $limite = 4;
-
     $query = "SELECT
-                r.id_reserva,
-                e.nome_empresa,
-                r.data_reserva,
-                r.hora_reserva,
-                r.status_reserva
-            FROM reserva r
-            INNER JOIN empresa e
-                    ON r.id_empresa = e.id_empresa
-            WHERE r.id_cliente = ?
-            ORDER BY r.data_reserva DESC, r.hora_reserva DESC
-            LIMIT ?";
+            r.id_reserva,
+            e.nome_empresa,
+            r.data_reserva,
+            r.hora_reserva,
+            r.status_reserva
+        FROM reserva r
+        INNER JOIN empresa e
+                ON r.id_empresa = e.id_empresa
+        WHERE r.id_cliente = ?
+        ORDER BY r.data_reserva ASC, r.hora_reserva ASC";
 
     $stmt = $obj->prepare($query);
-    $stmt->bind_param("ii", $id_cliente, $limite);
+    $stmt->bind_param("i", $id_cliente);
     $stmt->execute();
 
     $reservas = $stmt->get_result();
@@ -152,7 +149,13 @@
     </header>
 
     <div class="page-wrapper">
-        <h1 class="page-title">Minhas Reservas</h1>
+        <div class="page-header">
+            <h1 class="page-title">Minhas Reservas</h1>
+
+            <a href="solicitacao_reserva.php" class="btn-success">
+                + Solicitar reserva
+            </a>
+        </div>
 
         <div class="table-wrap">
             <table>
@@ -218,16 +221,8 @@
                     <?php endif; ?>
                 </tbody>
             </table>
-
-            <?php if ($total_reservas > $limite): ?>
-                <div class="td-more">
-                    <a href="todas_reservas.php">...</a>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
-
-    <a href="solicitacao_reserva.php" class="btn-success-float">+ Solicitar reserva</a>
 
     <footer class="footer">
         <p>&copy; 2026 - Bookington - Reservas inteligentes, resultados eficientes. Todos os direitos reservados.</p>
@@ -263,9 +258,19 @@
             }).then((result) => {
 
                 if(result.isConfirmed){
-                    window.location =
-                        "alterar_email.php?email=" +
-                        encodeURIComponent(result.value);
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'alterar_email.php';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'email';
+                    input.value = result.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
                 }
 
             });
@@ -286,9 +291,19 @@
             }).then((result) => {
 
                 if(result.isConfirmed){
-                    window.location =
-                        "alterar_senha.php?senha=" +
-                        encodeURIComponent(result.value);
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'alterar_senha.php';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'senha';
+                    input.value = result.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
                 }
 
             });

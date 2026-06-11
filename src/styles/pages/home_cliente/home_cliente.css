@@ -5,16 +5,12 @@
     padding:40px 60px;
 }
 
-.page-title{
-    text-align:center;
-    margin-bottom:30px;
-    color:#6B1020;
-}
-
 .table-wrap{
     width:100%;
     max-width:1600px;
     margin:auto;
+    margin-bottom:60px;
+
     background:white;
     border-radius:14px;
     overflow:hidden;
@@ -176,4 +172,29 @@ td{
 
 .dropdown-menu a:hover{
     background:#f5f5f5;
+}
+
+.page-header{
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.page-title{
+    text-align: center;
+    color: #6B1020;
+    margin: 0;
+    margin-bottom:50px;
+}
+
+.btn-success{
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    background: #6B1020;
+    color: white;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 8px;
 }
