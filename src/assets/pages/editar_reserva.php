@@ -60,10 +60,11 @@
             r.num_pessoas,
             r.observacao,
             r.status_reserva,
-            u.nome AS nome_cliente
+            r.id_cliente,
+            COALESCE(u.nome, r.nome_cliente) AS nome_cliente
         FROM reserva r
-        INNER JOIN cliente c ON r.id_cliente = c.id_cliente
-        INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+        LEFT JOIN cliente c ON r.id_cliente = c.id_cliente
+        LEFT JOIN usuario u ON c.id_usuario = u.id_usuario
         WHERE r.id_reserva = ?
     ";
     $stmt_reserva = $obj->prepare($query_reserva);
@@ -99,21 +100,21 @@
             empty($_POST['people'])
         ) {
             $_SESSION['error_message'] = "Preencha todos os campos obrigatórios!";
-            header("Location: editar_reserva_cliente.php?id=$id_reserva");
+            header("Location: editar_reserva.php?id=$id_reserva");
             exit();
         }
 
         $data = DateTime::createFromFormat('d/m/Y', $_POST['date']);
         if (!$data) {
             $_SESSION['error_message'] = "Data inválida!";
-            header("Location: editar_reserva_cliente.php?id=$id_reserva");
+            header("Location: editar_reserva.php?id=$id_reserva");
             exit();
         }
         $data_reserva = $data->format('Y-m-d');
 
         if (!preg_match('/^\d{2}:\d{2}$/', $horario)) {
             $_SESSION['error_message'] = "Horário inválido!";
-            header("Location: editar_reserva_cliente.php?id=$id_reserva");
+            header("Location: editar_reserva.php?id=$id_reserva");
             exit();
         }
 
@@ -129,7 +130,7 @@
 
         if ($stmt_check->num_rows > 0) {
             $_SESSION['error_message'] = "Já existe uma reserva para esse local, data e horário!";
-            header("Location: editar_reserva_cliente.php?id=$id_reserva");
+            header("Location: editar_reserva.php?id=$id_reserva");
             exit();
         }
 
@@ -197,7 +198,7 @@
             <h1>Editar Reserva</h1>
 
             <section class="input-register">
-                <form id="form" name="form" method="POST" action="editar_reserva_cliente.php?id=<?php echo $id_reserva; ?>">
+                <form id="form" name="form" method="POST" action="editar_reserva.php?id=<?php echo $id_reserva; ?>">
 
                     <!-- Nome -->
                     <div class="full-inputBox">

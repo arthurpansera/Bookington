@@ -208,7 +208,7 @@
                                                 Ver &#9673;
                                             </a>
                                         <?php else: ?>
-                                            <a href="editar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">
+                                            <a href="editar_reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">
                                                 Editar &#9998;
                                             </a>
 
