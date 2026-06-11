@@ -51,3 +51,10 @@ ALTER TABLE reserva
     ADD COLUMN servico VARCHAR(100) NULL AFTER id_empresa,
     ADD COLUMN num_pessoas INT NOT NULL DEFAULT 1 AFTER hora_reserva,
     ADD COLUMN observacao TEXT NULL AFTER num_pessoas;
+INSERT INTO empresa (nome_empresa) VALUES ('Nome da Sua Empresa');
+
+INSERT INTO usuario (nome, data_nasc, cpf, telefone, email, senha, tipo_perfil)
+VALUES ('João Silva', '1990-05-20', '123.456.789-00', '(41) 99999-9999', 'joao@email.com', 'senha123', 'funcionario');
+
+INSERT INTO funcionario (id_usuario, id_empresa)
+VALUES (LAST_INSERT_ID(), 1);
