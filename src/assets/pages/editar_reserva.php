@@ -25,11 +25,6 @@
         exit();
     }
 
-    if (!isset($_GET['id'])) {
-        header("Location: home_cliente.php");
-        exit();
-    }
-
     $id_reserva = (int) $_GET['id'];
 
     $obj = conecta_db();
@@ -75,12 +70,6 @@
     $stmt_reserva->bind_param("i", $id_reserva);
     $stmt_reserva->execute();
     $res_reserva = $stmt_reserva->get_result();
-
-    if ($res_reserva->num_rows === 0) {
-        $_SESSION['error_message'] = "Reserva não encontrada!";
-        header("Location: home_cliente.php");
-        exit();
-    }
 
     $reserva = $res_reserva->fetch_assoc();
 

@@ -25,13 +25,11 @@
     $usuario = $result->fetch_assoc();
     $primeiro_nome = $usuario ? explode(' ', $usuario['nome'])[0] : 'Usuário';
 
-    $query_cliente = "SELECT id_cliente FROM cliente WHERE id_usuario = ?";
-    $stmt_cliente = $obj->prepare($query_cliente);
-    $stmt_cliente->bind_param("i", $id_usuario);
-    $stmt_cliente->execute();
-    $result_cliente = $stmt_cliente->get_result();
-    $cliente = $result_cliente->fetch_assoc();
-    $id_cliente = $cliente['id_cliente'] ?? 0;
+    $query_tipo = "SELECT tipo_perfil FROM usuario WHERE id_usuario = ?";
+    $stmt_tipo = $obj->prepare($query_tipo);
+    $stmt_tipo->bind_param("i", $id_usuario);
+    $stmt_tipo->execute();
+    $tipo = $stmt_tipo->get_result()->fetch_assoc()['tipo_perfil'] ?? 'cliente';
 
     if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
         header("Location: home_cliente.php");
@@ -40,33 +38,57 @@
 
     $id_reserva = (int) $_GET['id'];
 
-    $query = "SELECT
-            r.id_reserva,
-            r.data_reserva,
-            r.hora_reserva,
-            r.status_reserva,
-            r.servico,
-            r.num_pessoas,
-            r.observacao,
-            r.criado_em,
-            e.nome_empresa
-        FROM reserva r
-        INNER JOIN empresa e
-                ON r.id_empresa = e.id_empresa
-        WHERE r.id_reserva = ?
-          AND r.id_cliente = ?";
+    if ($tipo === 'funcionario') {
 
-    $stmt = $obj->prepare($query);
-    $stmt->bind_param("ii", $id_reserva, $id_cliente);
+        $q = "SELECT id_empresa FROM funcionario WHERE id_usuario = ?";
+        $st = $obj->prepare($q);
+        $st->bind_param("i", $id_usuario);
+        $st->execute();
+        $id_empresa = $st->get_result()->fetch_assoc()['id_empresa'] ?? 0;
+
+        $query = "
+            SELECT r.*, e.nome_empresa, r.nome_cliente
+            FROM reserva r
+            INNER JOIN empresa e ON r.id_empresa = e.id_empresa
+            WHERE r.id_reserva = ?
+            AND r.id_empresa = ?
+        ";
+
+        $stmt = $obj->prepare($query);
+        $stmt->bind_param("ii", $id_reserva, $id_empresa);
+
+    } else {
+        $query = "
+            SELECT 
+                r.id_reserva,
+                r.id_empresa,
+                r.id_cliente,
+                r.servico,
+                r.data_reserva,
+                r.hora_reserva,
+                r.num_pessoas,
+                r.observacao,
+                r.status_reserva,
+                r.criado_em,
+                e.nome_empresa,
+                u.nome AS nome_cliente
+            FROM reserva r
+            INNER JOIN empresa e ON r.id_empresa = e.id_empresa
+            INNER JOIN cliente c ON r.id_cliente = c.id_cliente
+            INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+            WHERE r.id_reserva = ?
+            AND r.id_cliente = (
+                SELECT id_cliente FROM cliente WHERE id_usuario = ?
+            )
+        ";
+
+        $stmt = $obj->prepare($query);
+        $stmt->bind_param("ii", $id_reserva, $id_usuario);
+    }
+    
     $stmt->execute();
     $result = $stmt->get_result();
     $reserva = $result->fetch_assoc();
-
-    if (!$reserva) {
-        $_SESSION['error_message'] = "Reserva não encontrada ou você não tem permissão para visualizá-la.";
-        header("Location: home_cliente.php");
-        exit();
-    }
 
     $data_formatada = date('d/m/Y', strtotime($reserva['data_reserva']));
     $hora_formatada = date('H\hi', strtotime($reserva['hora_reserva']));
@@ -98,14 +120,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookington | Detalhes da Reserva</title>
-    <link rel="stylesheet" href="../../styles/pages/home_cliente/home_cliente.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../styles/pages/ver_reserva/ver_reserva.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <header>
         <div class="container">
             <nav class="nav">
 
-                <a href="home_cliente.php" class="logo-container">
+                <a href="<?php echo ($tipo === 'funcionario') ? 'home_funcionario.php' : 'home_cliente.php'; ?>" class="logo-container">
                     <img src="../images/logo-bookington.png"
                         alt="Logo Bookington"
                         class="logo">
@@ -140,9 +162,7 @@
         <div class="page-header">
             <h1 class="page-title">Detalhes da Reserva</h1>
 
-            <a href="home_cliente.php" class="btn-success">
-                &larr; Voltar
-            </a>
+            <a href="<?php echo ($tipo === 'funcionario') ? 'home_funcionario.php' : 'home_cliente.php'; ?>" class="btn-success">Voltar</a>
         </div>
 
         <div class="table-wrap">
@@ -151,6 +171,10 @@
                     <tr>
                         <th style="width: 220px;">Código</th>
                         <td><?php echo str_pad($reserva['id_reserva'], 2, '0', STR_PAD_LEFT); ?></td>
+                    </tr>
+                    <tr>
+                        <th>Cliente</th>
+                        <td><?php echo htmlspecialchars($reserva['nome_cliente']); ?></td>
                     </tr>
                     <tr>
                         <th>Empresa/Organização</th>
