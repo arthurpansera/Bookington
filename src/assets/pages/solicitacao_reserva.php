@@ -20,6 +20,30 @@
         unset($_SESSION['error_message']);
     }
 
+    $tipo_perfil = 'cliente';
+
+    if (isset($_SESSION['id_usuario'])) {
+        $query_tipo = "SELECT tipo_perfil FROM usuario WHERE id_usuario = ?";
+        $stmt_tipo = $obj->prepare($query_tipo);
+        $stmt_tipo->bind_param("i", $_SESSION['id_usuario']);
+        $stmt_tipo->execute();
+
+        $resultado_tipo = $stmt_tipo->get_result();
+
+        if ($resultado_tipo->num_rows > 0) {
+            $usuario = $resultado_tipo->fetch_assoc();
+            $tipo_perfil = $usuario['tipo_perfil'];
+        }
+    }
+
+    $label_nome = ($tipo_perfil === 'funcionario')
+        ? 'Nome do cliente: *'
+        : 'Nome: *';
+
+    $placeholder_nome = ($tipo_perfil === 'funcionario')
+        ? 'Insira o nome do cliente completo'
+        : 'Insira seu nome completo';
+
     if (isset($_POST['name'], $_POST['company'], $_POST['service'], $_POST['date'], $_POST['time'], $_POST['people'])) {
         $nome        = $_POST['name'];
         $empresa     = $_POST['company'];
@@ -92,16 +116,12 @@
             <section class="input-register">
                 <form id="form" name="form" method="POST" action="cadastro_reserva.php">
 
-                    <!-- Nome -->
                     <div class="full-inputBox">
-                        <label for="name"><b>Nome: *</b></label>
-                        <input type="text" id="name" name="name" class="full-inputUser required"
-                            data-type="nome" data-required="true"
-                            placeholder="Insira seu nome completo">
+                        <label for="name"><b><?php echo $label_nome; ?></b></label>
+                        <input type="text" id="name" name="name" class="full-inputUser required" data-type="nome" data-required="true" placeholder="<?php echo $placeholder_nome; ?>">
                         <span class="span-required">Nome não pode conter números e caracteres especiais.</span>
                     </div>
 
-                    <!-- Empresa / Serviço -->
                     <div class="container-row">
                         <div class="mid-inputBox">
                             <label for="company"><b>Empresa/Organização: *</b></label>
@@ -120,7 +140,6 @@
                         </div>
                     </div>
 
-                    <!-- Data / Horário / Número de pessoas -->
                     <div class="container-row container-row--three">
                         <div class="small-inputBox">
                             <label for="date"><b>Data: *</b></label>
@@ -146,7 +165,6 @@
                         </div>
                     </div>
 
-                    <!-- Observação -->
                     <div class="full-inputBox">
                         <label for="observation"><b>Observação:</b></label>
                         <input type="text" id="observation" name="observation" class="full-inputUser"
