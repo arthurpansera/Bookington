@@ -20,64 +20,150 @@
         unset($_SESSION['error_message']);
     }
 
-    $tipo_perfil = 'cliente';
-
-    if (isset($_SESSION['id_usuario'])) {
-        $query_tipo = "SELECT tipo_perfil FROM usuario WHERE id_usuario = ?";
-        $stmt_tipo = $obj->prepare($query_tipo);
-        $stmt_tipo->bind_param("i", $_SESSION['id_usuario']);
-        $stmt_tipo->execute();
-
-        $resultado_tipo = $stmt_tipo->get_result();
-
-        if ($resultado_tipo->num_rows > 0) {
-            $usuario = $resultado_tipo->fetch_assoc();
-            $tipo_perfil = $usuario['tipo_perfil'];
-        }
+    // Redireciona se não estiver logado
+    if (!isset($_SESSION['id_usuario'])) {
+        header("Location: ../../../index.php");
+        exit();
     }
 
-    $label_nome = ($tipo_perfil === 'funcionario')
-        ? 'Nome do cliente: *'
-        : 'Nome: *';
+    $obj = conecta_db();
 
-    $placeholder_nome = ($tipo_perfil === 'funcionario')
-        ? 'Insira o nome do cliente completo'
-        : 'Insira seu nome completo';
+    if (!$obj) {
+        header("Location: database-error.php");
+        exit();
+    }
 
+    // Busca tipo_perfil do usuário logado
+    $tipo_perfil = 'cliente';
+    $query_tipo = "SELECT tipo_perfil FROM usuario WHERE id_usuario = ?";
+    $stmt_tipo = $obj->prepare($query_tipo);
+    $stmt_tipo->bind_param("i", $_SESSION['id_usuario']);
+    $stmt_tipo->execute();
+    $resultado_tipo = $stmt_tipo->get_result();
+    if ($resultado_tipo->num_rows > 0) {
+        $usuario = $resultado_tipo->fetch_assoc();
+        $tipo_perfil = $usuario['tipo_perfil'];
+    }
+
+    $label_nome = ($tipo_perfil === 'funcionario') ? 'Nome do cliente: *' : 'Nome: *';
+    $placeholder_nome = ($tipo_perfil === 'funcionario') ? 'Insira o nome do cliente completo' : 'Insira seu nome completo';
+
+    // Processa o formulário
     if (isset($_POST['name'], $_POST['company'], $_POST['service'], $_POST['date'], $_POST['time'], $_POST['people'])) {
-        $nome        = $_POST['name'];
-        $empresa     = $_POST['company'];
-        $servico     = $_POST['service'];
-        $observacao  = $_POST['observation'] ?? '';
 
+        $nome_reserva = $_POST['name'];
+        $nome_empresa = $_POST['company'];
+        $horario      = $_POST['time'];
+        $observacao   = $_POST['observation'] ?? '';
+
+        // Valida e formata a data
         $data = DateTime::createFromFormat('d/m/Y', $_POST['date']);
-
         if (!$data) {
             $_SESSION['error_message'] = "Data inválida!";
-            header("Location: cadastro_reserva.php");
+            header("Location: solicitacao_reserva.php");
+            exit();
+        }
+        $data_reserva = $data->format('Y-m-d');
+
+        // Valida horário (formato HH:mm)
+        if (!preg_match('/^\d{2}:\d{2}$/', $horario)) {
+            $_SESSION['error_message'] = "Horário inválido!";
+            header("Location: solicitacao_reserva.php");
             exit();
         }
 
-        $data_reserva = $data->format('Y-m-d');
-        $horario      = $_POST['time'];
-        $num_pessoas  = (int) $_POST['people'];
+        // Busca id_cliente
+        if ($tipo_perfil === 'funcionario') {
+            // Funcionário cadastra pelo nome do cliente
+            $query_cliente = "SELECT c.id_cliente FROM cliente c
+                              INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+                              WHERE u.nome = ?";
+            $stmt_cliente = $obj->prepare($query_cliente);
+            $stmt_cliente->bind_param("s", $nome_reserva);
+            $stmt_cliente->execute();
+            $res_cliente = $stmt_cliente->get_result();
 
-        $obj = conecta_db();
+            if ($res_cliente->num_rows === 0) {
+                $_SESSION['error_message'] = "Cliente não encontrado no sistema!";
+                header("Location: solicitacao_reserva.php");
+                exit();
+            }
+            $row_cliente = $res_cliente->fetch_assoc();
+            $id_cliente = $row_cliente['id_cliente'];
+        } else {
+            // Cliente cadastra para si mesmo
+            $query_cliente = "SELECT id_cliente FROM cliente WHERE id_usuario = ?";
+            $stmt_cliente = $obj->prepare($query_cliente);
+            $stmt_cliente->bind_param("i", $_SESSION['id_usuario']);
+            $stmt_cliente->execute();
+            $res_cliente = $stmt_cliente->get_result();
 
-        if (!$obj) {
-            header("Location: database-error.php");
-            exit;
+            if ($res_cliente->num_rows === 0) {
+                $_SESSION['error_message'] = "Perfil de cliente não encontrado!";
+                header("Location: solicitacao_reserva.php");
+                exit();
+            }
+            $row_cliente = $res_cliente->fetch_assoc();
+            $id_cliente = $row_cliente['id_cliente'];
         }
 
-        // Insira aqui sua lógica de INSERT na tabela de reservas
-        // Exemplo:
-        // $query = "INSERT INTO reserva (nome, empresa, servico, data, horario, num_pessoas, observacao) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        // $stmt = $obj->prepare($query);
-        // $stmt->bind_param("sssssiss", $nome, $empresa, $servico, $data_reserva, $horario, $num_pessoas, $observacao);
-        // $stmt->execute();
+        // Busca id_empresa pelo nome
+        $query_empresa = "SELECT id_empresa FROM empresa WHERE nome_empresa = ?";
+        $stmt_empresa = $obj->prepare($query_empresa);
+        $stmt_empresa->bind_param("s", $nome_empresa);
+        $stmt_empresa->execute();
+        $res_empresa = $stmt_empresa->get_result();
 
-        header("Location: home.php");
-        exit();
+        if ($res_empresa->num_rows === 0) {
+            $_SESSION['error_message'] = "Empresa/Organização não encontrada no sistema!";
+            header("Location: solicitacao_reserva.php");
+            exit();
+        }
+        $row_empresa = $res_empresa->fetch_assoc();
+        $id_empresa = $row_empresa['id_empresa'];
+
+        // Verifica conflito de horário
+        $query_check = "SELECT id_reserva FROM reserva
+                        WHERE id_empresa = ? AND data_reserva = ? AND hora_reserva = ?
+                        AND status_reserva != 'cancelado'";
+        $stmt_check = $obj->prepare($query_check);
+        $stmt_check->bind_param("iss", $id_empresa, $data_reserva, $horario);
+        $stmt_check->execute();
+        $stmt_check->store_result();
+
+        if ($stmt_check->num_rows > 0) {
+            $_SESSION['error_message'] = "Já existe uma reserva para esse local, data e horário!";
+            header("Location: solicitacao_reserva.php");
+            exit();
+        }
+
+        $servico     = $_POST['service'];
+        $num_pessoas = (int) $_POST['people'];
+
+        // Insere a reserva
+        $query_insert = "INSERT INTO reserva (id_cliente, id_empresa, servico, data_reserva, hora_reserva, num_pessoas, observacao, status_reserva)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, 'aberto')";
+        $stmt_insert = $obj->prepare($query_insert);
+
+        if (!$stmt_insert) {
+            die("<span class='alert alert-danger'><h5>Erro na preparação da query: " . $obj->error . "</h5></span>");
+        }
+
+        $stmt_insert->bind_param("iisssis", $id_cliente, $id_empresa, $servico, $data_reserva, $horario, $num_pessoas, $observacao);
+
+        if (!$stmt_insert->execute()) {
+            die("<span class='alert alert-danger'><h5>Erro ao cadastrar reserva: " . $stmt_insert->error . "</h5></span>");
+        }
+
+        if ($stmt_insert->affected_rows > 0) {
+            $_SESSION['success_message'] = "Reserva cadastrada com sucesso!";
+            header("Location: home_cliente.php");
+            exit();
+        } else {
+            $_SESSION['error_message'] = "Erro ao cadastrar a reserva!";
+            header("Location: solicitacao_reserva.php");
+            exit();
+        }
     }
 ?>
 
@@ -107,18 +193,20 @@
         <section class="box-container">
             <section class="btn-back">
                 <div class="back-btn">
-                    <a href="home.php">Voltar</a>
+                    <a href="home_cliente.php">Voltar</a>
                 </div>
             </section>
 
             <h1>Dados Reserva</h1>
 
             <section class="input-register">
-                <form id="form" name="form" method="POST" action="cadastro_reserva.php">
+                <form id="form" name="form" method="POST" action="solicitacao_reserva.php">
 
                     <div class="full-inputBox">
                         <label for="name"><b><?php echo $label_nome; ?></b></label>
-                        <input type="text" id="name" name="name" class="full-inputUser required" data-type="nome" data-required="true" placeholder="<?php echo $placeholder_nome; ?>">
+                        <input type="text" id="name" name="name" class="full-inputUser required"
+                            data-type="nome" data-required="true"
+                            placeholder="<?php echo $placeholder_nome; ?>">
                         <span class="span-required">Nome não pode conter números e caracteres especiais.</span>
                     </div>
 
@@ -144,6 +232,7 @@
                         <div class="small-inputBox">
                             <label for="date"><b>Data: *</b></label>
                             <input type="text" id="date" name="date" class="small-inputUser required"
+                                data-type="data" data-required="true"
                                 placeholder="DD/MM/AAAA" maxlength="10"
                                 onkeypress="return MascaraData(this, event)">
                             <span class="span-required">Insira uma data válida.</span>
@@ -152,6 +241,7 @@
                         <div class="small-inputBox">
                             <label for="time"><b>Horário: *</b></label>
                             <input type="text" id="time" name="time" class="small-inputUser required"
+                                data-type="horário" data-required="true"
                                 placeholder="HH:mm" maxlength="5"
                                 onkeypress="return MascaraHorario(this, event)">
                             <span class="span-required">Insira um horário válido.</span>
@@ -160,6 +250,7 @@
                         <div class="mid-inputBox">
                             <label for="people"><b>Número de pessoas: *</b></label>
                             <input type="number" id="people" name="people" class="mid-inputUser required"
+                                data-type="número de pessoas" data-required="true" min="1"
                                 placeholder="Insira o número de pessoas da sua reserva">
                             <span class="span-required">Informe o número de pessoas.</span>
                         </div>
