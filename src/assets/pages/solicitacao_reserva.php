@@ -111,7 +111,10 @@
             $id_cliente = null;
             $nome_cliente = $nome_reserva;
         } else {
-            $query_cliente = "SELECT id_cliente FROM cliente WHERE id_usuario = ?";
+            $query_cliente = "SELECT c.id_cliente, u.nome
+                            FROM cliente c
+                            INNER JOIN usuario u ON c.id_usuario = u.id_usuario
+                            WHERE c.id_usuario = ?";
 
             $stmt_cliente = $obj->prepare($query_cliente);
             $stmt_cliente->bind_param("i", $_SESSION['id_usuario']);
@@ -126,7 +129,9 @@
             }
 
             $row_cliente = $res_cliente->fetch_assoc();
+
             $id_cliente = $row_cliente['id_cliente'];
+            $nome_cliente = $row_cliente['nome'];
         }
 
         $query_check = "SELECT id_reserva FROM reserva WHERE id_empresa = ? AND data_reserva = ? AND hora_reserva = ? AND status_reserva != 'cancelado'";
