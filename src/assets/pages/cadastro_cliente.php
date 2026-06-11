@@ -11,7 +11,7 @@
                     text: '{$_SESSION['error_message']}',
                     icon: 'error',
                     confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#77CD46',
+                    confirmButtonColor: '#5F0D07',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -26,8 +26,16 @@
 
         $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
 
-        if (!$data) {
-            $_SESSION['error_message'] = "Data de nascimento inválida!";
+        if (
+            empty($_POST['name']) ||
+            empty($_POST['cpf']) ||
+            empty($_POST['birthYear']) ||
+            empty($_POST['telephone']) ||
+            empty($_POST['email']) ||
+            empty($_POST['password']) ||
+            empty($_POST['confirm-pass'])
+        ) {
+            $_SESSION['error_message'] = "Preencha todos os campos obrigatórios.";
             header("Location: cadastro_cliente.php");
             exit();
         }

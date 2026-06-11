@@ -35,7 +35,7 @@
                     text: '{$mensagem}',
                     icon: 'success',
                     confirmButtonText: 'Ok',
-                    confirmButtonColor: '#6B1020',
+                    confirmButtonColor: '#77CD46',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -71,6 +71,22 @@
 
     $id_cliente = $cliente['id_cliente'] ?? 0;
 
+    $query_total = "
+        SELECT COUNT(*) AS total
+        FROM reserva
+        WHERE id_cliente = ?
+    ";
+
+    $stmt_total = $obj->prepare($query_total);
+    $stmt_total->bind_param("i", $id_cliente);
+    $stmt_total->execute();
+
+    $total_reservas = $stmt_total
+        ->get_result()
+        ->fetch_assoc()['total'];
+
+    $limite = 4;
+
     $query = "SELECT
                 r.id_reserva,
                 e.nome_empresa,
@@ -81,10 +97,11 @@
             INNER JOIN empresa e
                     ON r.id_empresa = e.id_empresa
             WHERE r.id_cliente = ?
-            ORDER BY r.data_reserva DESC, r.hora_reserva DESC";
+            ORDER BY r.data_reserva DESC, r.hora_reserva DESC
+            LIMIT ?";
 
     $stmt = $obj->prepare($query);
-    $stmt->bind_param("i", $id_cliente);
+    $stmt->bind_param("ii", $id_cliente, $limite);
     $stmt->execute();
 
     $reservas = $stmt->get_result();
@@ -113,12 +130,21 @@
                     <span class="welcome-message">
                         Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
                     </span>
-                    <a href="perfil.php" class="navbar-avatar">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </a>
+                    <div class="profile-dropdown">
+                        <button class="navbar-avatar" id="profileBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </button>
+
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" id="editarEmail">Alterar E-mail</a>
+                            <a href="#" id="editarSenha">Alterar Senha</a>
+                            <a href="#" onclick="confirmarLogout()">Sair</a>
+                        </div>
+                    </div>
                 </div>
 
             </nav>
@@ -175,10 +201,10 @@
                                 <td>
                                     <div class="td-actions">
                                         <?php if ($status !== 'cancelado'): ?>
-                                            <a href="editar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn btn-edit btn-sm">Editar &#9998;</a>
-                                            <a href="cancelar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn btn-cancel-res btn-sm" onclick="return confirm('Deseja realmente cancelar esta reserva?');">Cancelar &#10005;</a>
+                                            <a href="editar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">Editar &#9998;</a>
+                                            <a href="cancelar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-cancel-res btn-sm" onclick="return confirm('Deseja realmente cancelar esta reserva?');">Cancelar &#10005;</a>
                                         <?php endif; ?>
-                                        <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn btn-view btn-sm">Ver &#9673;</a>
+                                        <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-view btn-sm">Ver &#9673;</a>
                                     </div>
                                 </td>
                             </tr>
@@ -192,7 +218,12 @@
                     <?php endif; ?>
                 </tbody>
             </table>
-            <div class="td-more">...</div>
+
+            <?php if ($total_reservas > $limite): ?>
+                <div class="td-more">
+                    <a href="todas_reservas.php">...</a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -203,6 +234,84 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const profileBtn = document.getElementById("profileBtn");
+        const dropdownMenu = document.getElementById("dropdownMenu");
+
+        profileBtn.addEventListener("click", function(e){
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("show");
+        });
+
+        document.addEventListener("click", function(){
+            dropdownMenu.classList.remove("show");
+        });
+    </script>
+
+    <script>
+        document.getElementById("editarEmail").addEventListener("click", function(e){
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Alterar E-mail',
+                input: 'email',
+                inputLabel: 'Novo e-mail',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+
+                if(result.isConfirmed){
+                    window.location =
+                        "alterar_email.php?email=" +
+                        encodeURIComponent(result.value);
+                }
+
+            });
+        });
+    </script>
+
+    <script>
+        document.getElementById("editarSenha").addEventListener("click", function(e){
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Nova senha',
+                input: 'password',
+                inputLabel: 'Digite a nova senha',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+
+                if(result.isConfirmed){
+                    window.location =
+                        "alterar_senha.php?senha=" +
+                        encodeURIComponent(result.value);
+                }
+
+            });
+        });
+    </script>
+
+    <script>
+        function confirmarLogout() {
+            Swal.fire({
+                title: 'Deseja sair?',
+                text: 'Sua sessão será encerrada.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, sair',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'logout.php';
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

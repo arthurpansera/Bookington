@@ -11,7 +11,7 @@
                     text: '{$_SESSION['error_message']}',
                     icon: 'error',
                     confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#6B1020',
+                    confirmButtonColor: '#5F0D07',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -28,6 +28,20 @@
         $empresa = trim($_POST['company']);
 
         $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
+
+        if (
+            empty($_POST['name']) ||
+            empty($_POST['cpf']) ||
+            empty($_POST['birthYear']) ||
+            empty($_POST['telephone']) ||
+            empty($_POST['email']) ||
+            empty($_POST['password']) ||
+            empty($_POST['confirm-pass'])
+        ) {
+            $_SESSION['error_message'] = "Preencha todos os campos obrigatórios.";
+            header("Location: cadastro_cliente.php");
+            exit();
+        }
 
         if (!$data) {
             $_SESSION['error_message'] = "Data inválida!";
