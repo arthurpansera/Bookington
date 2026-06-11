@@ -52,6 +52,7 @@
     }
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
         $email = $_POST['email'];
         $password = $_POST['password'];
 
@@ -62,38 +63,45 @@
             exit;
         }
 
-        $query = "SELECT u.id_usuario, u.senha, p.status_perfil
-                FROM usuario u
-                JOIN contato c ON u.id_usuario = c.id_usuario 
-                JOIN perfil p ON u.id_usuario = p.id_usuario
-                WHERE c.email = ?";
+        $query = "SELECT id_usuario, senha, tipo_perfil FROM usuario WHERE email = ?";
+
         $stmt = $obj->prepare($query);
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
+
             $user = $result->fetch_assoc();
 
             if (password_verify($password, $user['senha'])) {
-                if ($user['status_perfil'] === 'banido') {
-                    $_SESSION['error_message'] = "Sua conta foi banida. Por favor, entre em contato com o suporte.";
-                    header("Location: login.php");
+                $_SESSION['user_logged_in'] = true;
+                $_SESSION['id_usuario'] = $user['id_usuario'];
+                $_SESSION['tipo_perfil'] = $user['tipo_perfil'];
+
+                if ($user['tipo_perfil'] === 'cliente') {
+                    header("Location: src/assets/pages/home_cliente.php");
                     exit();
                 }
 
-                $_SESSION['user_logged_in'] = true;
-                $_SESSION['id_usuario'] = $user['id_usuario'];
-                header("Location: ../../../index.php");
+                if ($user['tipo_perfil'] === 'funcionario') {
+                    header("Location: src/assets/pages/home_funcionario.php");
+                    exit();
+                }
+
+                $_SESSION['error_message'] = "Tipo de perfil inválido.";
+                header("Location: index.php");
                 exit();
+
             } else {
                 $_SESSION['error_message'] = "Usuário e/ou senha incorretos";
-                header("Location: login.php");
+                header("Location: index.php");
                 exit();
             }
+
         } else {
             $_SESSION['error_message'] = "Usuário e/ou senha incorretos";
-            header("Location: login.php");
+            header("Location: index.php");
             exit();
         }
     }
@@ -128,7 +136,7 @@
     
                 <section class="login-box">
                     <h1>Login</h1>
-                    <form id="form" name="form" method="POST" action="login.php">
+                    <form id="form" name="form" method="POST" action="index.php">
                         <label for="email" class="label-input">E-mail: </label>
                         <input type="text" name="email" id="email" class="input-box" placeholder="exemplo@gmail.com" required>
                         <label for="password" class="label-input">Senha:</label>
