@@ -47,3 +47,7 @@ CREATE TABLE IF NOT EXISTS reserva (
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE CASCADE,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa) ON DELETE CASCADE
 );
+ALTER TABLE reserva
+    ADD COLUMN servico VARCHAR(100) NULL AFTER id_empresa,
+    ADD COLUMN num_pessoas INT NOT NULL DEFAULT 1 AFTER hora_reserva,
+    ADD COLUMN observacao TEXT NULL AFTER num_pessoas;
