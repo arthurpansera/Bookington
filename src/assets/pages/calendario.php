@@ -8,42 +8,6 @@
         exit();
     }
 
-    if (isset($_SESSION['error_message'])) {
-        $mensagem = addslashes($_SESSION['error_message']);
-        echo "<script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    title: 'Erro!',
-                    text: '{$mensagem}',
-                    icon: 'error',
-                    confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#6B1020',
-                    allowOutsideClick: true,
-                    heightAuto: false
-                });
-            });
-        </script>";
-        unset($_SESSION['error_message']);
-    }
-
-    if (isset($_SESSION['success_message'])) {
-        $mensagem = addslashes($_SESSION['success_message']);
-        echo "<script>
-            document.addEventListener('DOMContentLoaded', function() {
-                Swal.fire({
-                    title: 'Sucesso!',
-                    text: '{$mensagem}',
-                    icon: 'success',
-                    confirmButtonText: 'Ok',
-                    confirmButtonColor: '#77CD46',
-                    allowOutsideClick: true,
-                    heightAuto: false
-                });
-            });
-        </script>";
-        unset($_SESSION['success_message']);
-    }
-
     $id_usuario = $_SESSION['id_usuario'];
 
     $obj = conecta_db();
@@ -74,18 +38,72 @@
     $id_empresa = $empresa['id_empresa'] ?? 0;
     $nome_empresa = $empresa['nome_empresa'] ?? '';
 
-    $query = "SELECT r.id_reserva, e.nome_empresa, r.data_reserva, r.hora_reserva, r.status_reserva, u.nome AS nome_cliente FROM reserva r
-        INNER JOIN empresa e ON r.id_empresa = e.id_empresa
+    // ---------- Mês/ano selecionado ----------
+    $mes = isset($_GET['mes']) ? (int) $_GET['mes'] : (int) date('n');
+    $ano = isset($_GET['ano']) ? (int) $_GET['ano'] : (int) date('Y');
+
+    if ($mes < 1) {
+        $mes = 12;
+        $ano--;
+    } elseif ($mes > 12) {
+        $mes = 1;
+        $ano++;
+    }
+
+    $primeiro_dia_mes = mktime(0, 0, 0, $mes, 1, $ano);
+    $dias_no_mes = (int) date('t', $primeiro_dia_mes);
+    $dia_semana_inicio = (int) date('w', $primeiro_dia_mes); // 0 = domingo
+
+    $meses_pt = [
+        1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril',
+        5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto',
+        9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'
+    ];
+
+    $mes_anterior = $mes - 1;
+    $ano_anterior = $ano;
+    if ($mes_anterior < 1) {
+        $mes_anterior = 12;
+        $ano_anterior--;
+    }
+
+    $mes_seguinte = $mes + 1;
+    $ano_seguinte = $ano;
+    if ($mes_seguinte > 12) {
+        $mes_seguinte = 1;
+        $ano_seguinte++;
+    }
+
+    // ---------- Busca as reservas do mês ----------
+    $primeiro_dia_str = sprintf('%04d-%02d-01', $ano, $mes);
+    $ultimo_dia_str = sprintf('%04d-%02d-%02d', $ano, $mes, $dias_no_mes);
+
+    $query_reservas = "SELECT
+            r.id_reserva,
+            r.data_reserva,
+            r.hora_reserva,
+            r.status_reserva,
+            u.nome AS nome_cliente
+        FROM reserva r
         INNER JOIN cliente c ON r.id_cliente = c.id_cliente
         INNER JOIN usuario u ON c.id_usuario = u.id_usuario
-        WHERE r.id_empresa = ? ORDER BY r.data_reserva DESC, r.hora_reserva DESC
-    ";
+        WHERE r.id_empresa = ?
+          AND r.data_reserva BETWEEN ? AND ?
+        ORDER BY r.hora_reserva ASC";
 
-    $stmt = $obj->prepare($query);
-    $stmt->bind_param("i", $id_empresa);
-    $stmt->execute();
+    $stmt_reservas = $obj->prepare($query_reservas);
+    $stmt_reservas->bind_param("iss", $id_empresa, $primeiro_dia_str, $ultimo_dia_str);
+    $stmt_reservas->execute();
+    $result_reservas = $stmt_reservas->get_result();
 
-    $reservas = $stmt->get_result();
+    $reservas_por_dia = [];
+    while ($row = $result_reservas->fetch_assoc()) {
+        $dia = (int) date('j', strtotime($row['data_reserva']));
+        $reservas_por_dia[$dia][] = $row;
+    }
+
+    $hoje = date('Y-m-d');
+    $dias_semana_pt = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 ?>
 
 <!DOCTYPE html>
@@ -93,8 +111,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bookington | Início</title>
+    <title>Bookington | Calendário</title>
     <link rel="stylesheet" href="../../styles/pages/home_funcionario/home_funcionario.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../../styles/pages/home_funcionario/calendario.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <header>
@@ -138,85 +157,68 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="home_funcionario.php" class="active">Página Inicial</a>
-            <a href="cadastrar_funcionario.php">Cadastrar Novo Funcionário</a>
-            <a href="cadastrar_reserva.php">Cadastrar Nova Reserva</a>
-            <a href="calendario.php">Calendário</a>
+            <a href="home_funcionario.php">Página Inicial</a>
+            <a href="cadastro_funcionario.php">Cadastrar Novo Funcionário</a>
+            <a href="solicitacao_reserva.php">Cadastrar Nova Reserva</a>
+            <a href="calendario.php" class="active">Calendário</a>
         </nav>
     </aside>
 
     <main class="main-content">
-        <div class="page-wrapper">
+        <div class="page-wrapper calendario-wrapper">
             <div class="page-header">
                 <h1 class="page-title">
-                    Reservas - <?php echo htmlspecialchars($nome_empresa); ?>
+                    Calendário - <?php echo htmlspecialchars($nome_empresa); ?>
                 </h1>
             </div>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Cliente</th>
-                            <th>Data / Hora</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($reservas->num_rows > 0): ?>
-                            <?php while ($reserva = $reservas->fetch_assoc()): ?>
-                                <?php
-                                    $data_formatada = date('d/m/Y', strtotime($reserva['data_reserva']));
-                                    $hora_formatada = date('H\hi', strtotime($reserva['hora_reserva']));
-                                    $status = $reserva['status_reserva'];
+            <div class="calendario-box">
 
-                                    $status_label = '';
-                                    $status_class = '';
-                                    switch ($status) {
-                                        case 'aberto':
-                                            $status_label = 'Em aberto';
-                                            $status_class = 'status-aberto';
-                                            break;
-                                        case 'reservado':
-                                            $status_label = 'Reservado';
-                                            $status_class = 'status-reservado';
-                                            break;
-                                        case 'cancelado':
-                                            $status_label = 'Cancelado';
-                                            $status_class = 'status-cancelado';
-                                            break;
-                                        default:
-                                            $status_label = ucfirst($status);
-                                            $status_class = '';
-                                    }
-                                ?>
-                                <tr>
-                                    <td><?php echo str_pad($reserva['id_reserva'], 2, '0', STR_PAD_LEFT); ?></td>
-                                    <td class="cliente-nome"><?php echo htmlspecialchars($reserva['nome_cliente']); ?></td>
-                                    <td><?php echo $data_formatada . ' - ' . $hora_formatada; ?></td>
-                                    <td class="status-cell <?php echo $status_class; ?>"><?php echo $status_label; ?></td>
-                                    <td>
-                                        <div class="td-actions">
-                                            <?php if ($status !== 'cancelado'): ?>
-                                                <a href="editar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">Editar &#9998;</a>
-                                                <a href="cancelar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-cancel-res btn-sm" onclick="return confirm('Deseja realmente cancelar esta reserva?');">Cancelar &#10005;</a>
-                                            <?php endif; ?>
-                                            <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-view btn-sm">Ver &#9673;</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="5" style="text-align:center; padding: 24px; color: var(--gray-400);">
-                                    Você ainda não possui reservas.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                <div class="calendar-header">
+                    <h2><?php echo $meses_pt[$mes] . ' de ' . $ano; ?></h2>
+
+                    <div class="calendar-nav">
+                        <a href="?mes=<?php echo $mes_anterior; ?>&ano=<?php echo $ano_anterior; ?>" title="Mês anterior">&#8249;</a>
+                        <a href="?mes=<?php echo (int) date('n'); ?>&ano=<?php echo (int) date('Y'); ?>" class="btn-hoje">Hoje</a>
+                        <a href="?mes=<?php echo $mes_seguinte; ?>&ano=<?php echo $ano_seguinte; ?>" title="Próximo mês">&#8250;</a>
+                    </div>
+                </div>
+
+                <div class="calendar-grid">
+                    <?php foreach ($dias_semana_pt as $dia_semana): ?>
+                        <div class="calendar-weekday"><?php echo $dia_semana; ?></div>
+                    <?php endforeach; ?>
+
+                    <?php for ($i = 0; $i < $dia_semana_inicio; $i++): ?>
+                        <div class="calendar-day empty"></div>
+                    <?php endfor; ?>
+
+                    <?php for ($dia = 1; $dia <= $dias_no_mes; $dia++): ?>
+                        <?php
+                            $data_atual_str = sprintf('%04d-%02d-%02d', $ano, $mes, $dia);
+                            $is_hoje = ($data_atual_str === $hoje);
+                        ?>
+                        <div class="calendar-day <?php echo $is_hoje ? 'today' : ''; ?>">
+                            <div class="calendar-day-number"><?php echo $dia; ?></div>
+
+                            <?php if (isset($reservas_por_dia[$dia])): ?>
+                                <?php foreach ($reservas_por_dia[$dia] as $reserva): ?>
+                                    <?php
+                                        $hora_formatada = date('H:i', strtotime($reserva['hora_reserva']));
+                                        $status_class = 'status-' . $reserva['status_reserva'];
+                                        $primeiro_nome_cliente = explode(' ', $reserva['nome_cliente'])[0];
+                                    ?>
+                                    <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>"
+                                       class="calendar-event <?php echo $status_class; ?>"
+                                       title="<?php echo htmlspecialchars($hora_formatada . ' - ' . $reserva['nome_cliente']); ?>">
+                                        <?php echo $hora_formatada . ' ' . htmlspecialchars($primeiro_nome_cliente); ?>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+
             </div>
         </div>
     </main>
