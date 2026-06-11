@@ -11,7 +11,7 @@
                     text: '{$_SESSION['error_message']}',
                     icon: 'error',
                     confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#6B1020',
+                    confirmButtonColor: '#77CD46',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -105,7 +105,7 @@
                 $_SESSION['user_logged_in'] = true;
                 $_SESSION['id_usuario'] = $id_usuario;
 
-                header("Location: home.php");
+                header("Location: home_cliente.php");
                 exit();
             } else {
                 echo "<span class='alert alert-danger'><h5>Erro ao cadastrar o cliente!</h5></span>";

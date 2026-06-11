@@ -25,7 +25,7 @@
                     text: '{$mensagem}',
                     icon: 'error',
                     confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#7A00CC',
+                    confirmButtonColor: '#6B1020',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -42,7 +42,7 @@
                     text: '{$_SESSION['success_message']}',
                     icon: 'success',
                     confirmButtonText: 'Ok',
-                    confirmButtonColor: '#7A00CC',
+                    confirmButtonColor: '#77CD46',
                     allowOutsideClick: true,
                     heightAuto: false
                 });

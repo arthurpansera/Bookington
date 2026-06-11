@@ -11,7 +11,7 @@
                     text: '{$_SESSION['error_message']}',
                     icon: 'error',
                     confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#7A00CC',
+                    confirmButtonColor: '#6B1020',
                     allowOutsideClick: true,
                     heightAuto: false
                 });
@@ -20,36 +20,44 @@
         unset($_SESSION['error_message']);
     }
 
-    if (isset($_POST['name'], $_POST['cpf'], $_POST['birthYear'], $_POST['telephone'], $_POST['email'], $_POST['password'], $_POST['CEP'], $_POST['road'], $_POST['num'], $_POST['neighborhood'], $_POST['city'], $_POST['state'], $_POST['country'], $_POST['complement'])) {
+    if (isset($_POST['name'], $_POST['cpf'], $_POST['birthYear'], $_POST['telephone'], $_POST['email'], $_POST['password'], $_POST['confirm-pass'], $_POST['company'])) {
         $nome = $_POST['name'];
         $cpf = $_POST['cpf'];
-        $data_nascimento = DateTime::createFromFormat('d/m/Y', $_POST['birthYear'])->format('Y-m-d');
         $telefone = $_POST['telephone'];
         $email = $_POST['email'];
+        $empresa = trim($_POST['company']);
+
+        $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
+
+        if (!$data) {
+            $_SESSION['error_message'] = "Data inválida!";
+            header("Location: cadastro_funcionario.php");
+            exit();
+        }
+
+        $data_nascimento = $data->format('Y-m-d');
+
+        if ($_POST['password'] !== $_POST['confirm-pass']) {
+            $_SESSION['error_message'] = "As senhas não coincidem!";
+            header("Location: cadastro_funcionario.php");
+            exit();
+        }
+
         $senha = password_hash($_POST['password'], PASSWORD_DEFAULT);
-        $cep = $_POST['CEP'];
-        $rua = $_POST['road'];
-        $numero = $_POST['num'];
-        $bairro = $_POST['neighborhood'];
-        $cidade = $_POST['city'];
-        $estado = $_POST['state'];
-        $pais = $_POST['country'];
-        $complemento = $_POST['complement'];
 
         $obj = conecta_db();
 
         if (!$obj) {
-            header("Location: database-error.php");
-            exit;
+            die("Erro na conexão.");
         }
 
-        $query_check_email = "SELECT id_usuario FROM contato WHERE email = ?";
+        $query_check_email = "SELECT id_usuario FROM usuario WHERE email = ?";
         $stmt_check_email = $obj->prepare($query_check_email);
         $stmt_check_email->bind_param("s", $email);
         $stmt_check_email->execute();
         $stmt_check_email->store_result();
 
-        $query_check_cpf = "SELECT id_usuario FROM cidadao WHERE cpf = ?";
+        $query_check_cpf = "SELECT id_usuario FROM usuario WHERE cpf = ?";
         $stmt_check_cpf = $obj->prepare($query_check_cpf);
         $stmt_check_cpf->bind_param("s", $cpf);
         $stmt_check_cpf->execute();
@@ -57,80 +65,64 @@
 
         if ($stmt_check_email->num_rows > 0 || $stmt_check_cpf->num_rows > 0) {
             $_SESSION['error_message'] = "Usuário já cadastrado!";
-            header("Location: register-user.php");
+            header("Location: cadastro_cliente.php");
             exit();
         }
 
-        $query = "INSERT INTO usuario (nome, senha) VALUES (?, ?)";
+        $query = "INSERT INTO usuario(nome, data_nasc, cpf, telefone, email, senha, tipo_perfil) VALUES (?, ?, ?, ?, ?, ?, 'funcionario')";
+
         $stmt = $obj->prepare($query);
-        
+
         if (!$stmt) {
             die("<span class='alert alert-danger'><h5>Erro na preparação da query de usuário: " . $obj->error . "</h5></span>");
         }
 
-        $stmt->bind_param("ss", $nome, $senha);
+        $stmt->bind_param("ssssss", $nome, $data_nascimento, $cpf, $telefone, $email, $senha);
+
         if (!$stmt->execute()) {
             die("<span class='alert alert-danger'><h5>Erro ao cadastrar o usuário: " . $stmt->error . "</h5></span>");
         }
 
-        if ($stmt->affected_rows > 0) {
-            $id_usuario = $obj->insert_id;
+        $id_usuario = $obj->insert_id;
 
-            $query_contato = "INSERT INTO contato (id_usuario, telefone, email) VALUES (?, ?, ?)";
-            $stmt_contato = $obj->prepare($query_contato);
-            
-            if (!$stmt_contato) {
-                die("<span class='alert alert-danger'><h5>Erro na preparação da query de contato: " . $obj->error . "</h5></span>");
-            }
+        $query = "SELECT id_empresa FROM empresa WHERE nome_empresa = ?";
+        $stmt = $obj->prepare($query);
+        $stmt->bind_param("s", $empresa);
+        $stmt->execute();
 
-            $stmt_contato->bind_param("iss", $id_usuario, $telefone, $email);
-            if (!$stmt_contato->execute()) {
-                die("<span class='alert alert-danger'><h5>Erro ao cadastrar o contato: " . $stmt_contato->error . "</h5></span>");
-            }
+        $resultado = $stmt->get_result();
 
-            $query_cidadao = "INSERT INTO cidadao (id_usuario, cpf, data_nasc, endereco_cep, endereco_rua, endereco_numero, endereco_bairro, endereco_cidade, endereco_estado, endereco_pais, endereco_complemento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            $stmt_cidadao = $obj->prepare($query_cidadao);
-            
-            if (!$stmt_cidadao) {
-                die("<span class='alert alert-danger'><h5>Erro na preparação da query de cidadão: " . $obj->error . "</h5></span>");
-            }
+        if ($resultado->num_rows > 0) {
+            $dados_empresa = $resultado->fetch_assoc();
+            $id_empresa = $dados_empresa['id_empresa'];
 
-            $complemento = !empty($complemento) ? $complemento : null;
-            $stmt_cidadao->bind_param("issssssssss", $id_usuario, $cpf, $data_nascimento, $cep, $rua, $numero, $bairro, $cidade, $estado, $pais, $complemento);
-            if (!$stmt_cidadao->execute()) {
-                die("<span class='alert alert-danger'><h5>Erro ao cadastrar o cidadão: " . $stmt_cidadao->error . "</h5></span>");
-            }
-
-            if ($stmt_cidadao->affected_rows > 0 && $stmt_contato->affected_rows > 0) {
-                $descricao = "Perfil de cidadão";
-                $foto = null;
-
-                $query_perfil = "INSERT INTO perfil (id_usuario, descricao, foto) VALUES (?, ?, ?)";
-                $stmt_perfil = $obj->prepare($query_perfil);
-
-                if (!$stmt_perfil) {
-                    die("<span class='alert alert-danger'><h5>Erro na preparação da query de perfil: " . $obj->error . "</h5></span>");
-                }
-
-                $stmt_perfil->bind_param("iss", $id_usuario, $descricao, $foto);
-                if (!$stmt_perfil->execute()) {
-                    die("<span class='alert alert-danger'><h5>Erro ao cadastrar o perfil: " . $stmt_perfil->error . "</h5></span>");
-                }
-
-                if ($stmt_perfil->affected_rows > 0) {
-                    $_SESSION['user_logged_in'] = true;
-                    $_SESSION['id_usuario'] = $id_usuario;
-                    header("Location: ../../../index.php");
-                    exit();
-                } else {
-                    echo "<span class='alert alert-danger'><h5>Erro ao cadastrar o perfil!</h5></span>";
-                }
-            } else {
-                echo "<span class='alert alert-danger'><h5>Erro ao cadastrar o cidadão ou contato!</h5></span>";
-            }
         } else {
-            echo "<span class='alert alert-danger'><h5>Erro ao cadastrar o usuário!</h5></span>";
+            $query = "INSERT INTO empresa (nome_empresa)VALUES (?)";
+
+            $stmt = $obj->prepare($query);
+            $stmt->bind_param("s", $empresa);
+
+            if (!$stmt->execute()) {
+                die("Erro ao cadastrar empresa: " . $stmt->error);
+            }
+
+            $id_empresa = $obj->insert_id;
         }
+
+        $query = "INSERT INTO funcionario(id_usuario, id_empresa) VALUES (?, ?)";
+
+        $stmt = $obj->prepare($query);
+        $stmt->bind_param("ii", $id_usuario, $id_empresa);
+
+        if (!$stmt->execute()) {
+            die("Erro ao cadastrar funcionário: " . $stmt->error);
+        }
+
+        $_SESSION['user_logged_in'] = true;
+        $_SESSION['id_usuario'] = $id_usuario;
+
+        header("Location: home_funcionario.php");
+        exit();
     }
 ?>
 
@@ -164,7 +156,7 @@
             <h1>Cadastrar Novo Funcionário</h1>
 
             <section class="input-register">
-                <form id="form" name="form" method="POST" action="register-user.php">
+                <form id="form" name="form" method="POST" action="cadastro_funcionario.php">
                     <div class="full-inputBox">
                         <label for="name"><b>Nome: *</b></label>
                         <input type="text" id="name" name="name" class="full-inputUser required" data-type="nome" data-required="true" placeholder="Insira seu nome completo">
@@ -195,7 +187,7 @@
                         </div>
 
                         <div class="mid-inputBox">
-                            <label for="text"><b>E-mail: *</b></label>
+                            <label for="email"><b>E-mail: *</b></label>
                             <input type="text" id="email" name="email"class="full-inputUser required" data-type="e-mail" data-required="true" placeholder="exemplo@gmail.com">
                             <span class="span-required">Insira um e-mail válido!</span>
                         </div>
