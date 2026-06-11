@@ -113,7 +113,7 @@
 
                 <div class="user-info">
                     <span class="welcome-message">
-                        Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
+                        Olá, <?php echo htmlspecialchars($primeiro_nome); ?>!
                     </span>
                     <div class="profile-dropdown">
                         <button class="navbar-avatar" id="profileBtn">

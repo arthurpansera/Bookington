@@ -125,7 +125,7 @@
 
                 <div class="user-info">
                     <span class="welcome-message">
-                        Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
+                        Olá, <?php echo htmlspecialchars($primeiro_nome); ?>!
                     </span>
                     <div class="profile-dropdown">
                         <button class="navbar-avatar" id="profileBtn">
@@ -203,11 +203,24 @@
                                 <td class="status-cell <?php echo $status_class; ?>"><?php echo $status_label; ?></td>
                                 <td>
                                     <div class="td-actions">
-                                        <?php if ($status !== 'cancelado'): ?>
-                                            <a href="editar_reserva_cliente.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">Editar &#9998;</a>
-                                            <a href="cancelar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-cancel-res btn-sm" onclick="return confirm('Deseja realmente cancelar esta reserva?');">Cancelar &#10005;</a>
+                                        <?php if ($status === 'cancelado'): ?>
+                                            <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-view btn-sm">
+                                                Ver &#9673;
+                                            </a>
+                                        <?php else: ?>
+                                            <a href="editar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-edit btn-sm">
+                                                Editar &#9998;
+                                            </a>
+
+                                            <a href="cancelar-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-cancel-res btn-sm"
+                                            onclick="return confirm('Deseja realmente cancelar esta reserva?');">
+                                                Cancelar &#10005;
+                                            </a>
+
+                                            <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-view btn-sm">
+                                                Ver &#9673;
+                                            </a>
                                         <?php endif; ?>
-                                        <a href="ver-reserva.php?id=<?php echo $reserva['id_reserva']; ?>" class="btn-view btn-sm">Ver &#9673;</a>
                                     </div>
                                 </td>
                             </tr>

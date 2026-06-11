@@ -148,8 +148,7 @@
             die("Erro ao cadastrar funcionário: " . $stmt->error);
         }
 
-        $_SESSION['user_logged_in'] = true;
-        $_SESSION['id_usuario'] = $id_usuario;
+        $_SESSION['success_message'] = "Funcionário cadastrado com sucesso!";
 
         header("Location: home_funcionario.php");
         exit();
@@ -177,7 +176,7 @@
 
                 <div class="user-info">
                     <span class="welcome-message">
-                        Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
+                        Olá, <?php echo htmlspecialchars($primeiro_nome); ?>!
                     </span>
                     <div class="profile-dropdown">
                         <button class="navbar-avatar" id="profileBtn">
@@ -250,7 +249,7 @@
             
                     <div class="full-inputBox">
                         <label for="company"><b>Empresa/Organização: *</b></label>
-                        <input type="text" id="company" name="company" class="full-inputUser required" data-type="empresa" data-required="true" placeholder="Insira o nome da empresa/organização da qual você faz parte">
+                        <input type="text" id="company" name="company" class="full-inputUser required" data-type="empresa" data-required="true" placeholder="Digite o nome da empresa/organização onde o funcionário trabalha">
                     </div>
 
                     <div class="full-inputBox">

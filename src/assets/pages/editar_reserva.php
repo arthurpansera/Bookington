@@ -101,6 +101,19 @@
         $observacao   = trim($_POST['observation'] ?? '');
         $num_pessoas  = (int) $_POST['people'];
 
+        if (
+            empty($_POST['name']) ||
+            empty($_POST['company']) ||
+            empty($_POST['service']) ||
+            empty($_POST['date']) ||
+            empty($_POST['time']) ||
+            empty($_POST['people'])
+        ) {
+            $_SESSION['error_message'] = "Preencha todos os campos obrigatórios!";
+            header("Location: editar_reserva_cliente.php?id=$id_reserva");
+            exit();
+        }
+
         $data = DateTime::createFromFormat('d/m/Y', $_POST['date']);
         if (!$data) {
             $_SESSION['error_message'] = "Data inválida!";
@@ -141,7 +154,16 @@
             die("Erro na query: " . $obj->error);
         }
 
-        $stmt_update->bind_param("isssssi", $id_empresa, $servico, $data_reserva, $horario, $num_pessoas, $observacao, $id_reserva);
+        $stmt_update->bind_param(
+            "isssisi",
+            $id_empresa,
+            $servico,
+            $data_reserva,
+            $horario,
+            $num_pessoas,
+            $observacao,
+            $id_reserva
+        );
 
         if (!$stmt_update->execute()) {
             die("Erro ao atualizar reserva: " . $stmt_update->error);
@@ -264,8 +286,7 @@
                             value="<?php echo htmlspecialchars($reserva['observacao'] ?? ''); ?>">
                     </div>
 
-                    <input type="submit" value="Salvar alterações" class="register-btn"
-                        onclick="btnRegisterOnClick(event, this.form)">
+                    <input type="submit" value="Salvar alterações" class="register-btn">
                 </form>
             </section>
         </section>

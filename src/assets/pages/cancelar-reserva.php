@@ -1,6 +1,5 @@
 <?php
     include('../../../conecta_db.php');
-
     session_start();
 
     if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
@@ -9,7 +8,7 @@
     }
 
     if (!isset($_GET['id'])) {
-        header("Location: home_cliente.php");
+        header("Location: home_funcionario.php");
         exit();
     }
 
@@ -18,40 +17,48 @@
 
     $obj = conecta_db();
 
-    if (!$obj) {
-        header("Location: database-error.php");
+    $query_empresa = "SELECT id_empresa FROM funcionario WHERE id_usuario = ?";
+    $stmt = $obj->prepare($query_empresa);
+    $stmt->bind_param("i", $id_usuario);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $empresa = $result->fetch_assoc();
+
+    if (!$empresa) {
+        $_SESSION['error_message'] = "Funcionário não encontrado!";
+        header("Location: home_funcionario.php");
         exit();
     }
 
-    // Garante que a reserva pertence ao cliente logado
+    $id_empresa = $empresa['id_empresa'];
+
     $query_check = "
-        SELECT r.id_reserva
-        FROM reserva r
-        INNER JOIN cliente c ON r.id_cliente = c.id_cliente
-        WHERE r.id_reserva = ? AND c.id_usuario = ?
+        SELECT id_reserva 
+        FROM reserva 
+        WHERE id_reserva = ? AND id_empresa = ?
     ";
+
     $stmt_check = $obj->prepare($query_check);
-    $stmt_check->bind_param("ii", $id_reserva, $id_usuario);
+    $stmt_check->bind_param("ii", $id_reserva, $id_empresa);
     $stmt_check->execute();
     $stmt_check->store_result();
 
     if ($stmt_check->num_rows === 0) {
         $_SESSION['error_message'] = "Reserva não encontrada ou sem permissão!";
-        header("Location: home_cliente.php");
+        header("Location: home_funcionario.php");
         exit();
     }
 
-    // Deleta a reserva
-    $query_delete = "DELETE FROM reserva WHERE id_reserva = ?";
-    $stmt_delete = $obj->prepare($query_delete);
-    $stmt_delete->bind_param("i", $id_reserva);
+    $query_update = "UPDATE reserva SET status_reserva = 'cancelado' WHERE id_reserva = ?";
+    $stmt_update = $obj->prepare($query_update);
+    $stmt_update->bind_param("i", $id_reserva);
 
-    if ($stmt_delete->execute() && $stmt_delete->affected_rows > 0) {
+    if ($stmt_update->execute()) {
         $_SESSION['success_message'] = "Reserva cancelada com sucesso!";
     } else {
-        $_SESSION['error_message'] = "Erro ao cancelar a reserva!";
+        $_SESSION['error_message'] = "Erro ao cancelar reserva!";
     }
 
-    header("Location: home_cliente.php");
+    header("Location: home_funcionario.php");
     exit();
 ?>

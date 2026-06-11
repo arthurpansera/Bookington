@@ -104,31 +104,12 @@
             exit();
         }
 
+        $nome_cliente = null;
+        $id_cliente = null;
+
         if ($tipo_perfil === 'funcionario') {
-
-            $query_cliente = "
-                SELECT c.id_cliente
-                FROM cliente c
-                INNER JOIN usuario u
-                    ON c.id_usuario = u.id_usuario
-                WHERE u.nome = ?
-            ";
-
-            $stmt_cliente = $obj->prepare($query_cliente);
-            $stmt_cliente->bind_param("s", $nome_reserva);
-            $stmt_cliente->execute();
-
-            $res_cliente = $stmt_cliente->get_result();
-
-            if ($res_cliente->num_rows === 0) {
-                $_SESSION['error_message'] = "Cliente não encontrado no sistema!";
-                header("Location: solicitacao_reserva.php");
-                exit();
-            }
-
-            $row_cliente = $res_cliente->fetch_assoc();
-            $id_cliente = $row_cliente['id_cliente'];
-
+            $id_cliente = null;
+            $nome_cliente = $nome_reserva;
         } else {
             $query_cliente = "SELECT id_cliente FROM cliente WHERE id_usuario = ?";
 
@@ -164,7 +145,9 @@
             exit();
         }
 
-        $query_insert = "INSERT INTO reserva (id_cliente, id_empresa, servico, data_reserva, hora_reserva, num_pessoas, observacao, status_reserva) VALUES (?, ?, ?, ?, ?, ?, ?, 'aberto')";
+        $query_insert = "INSERT INTO reserva 
+        (id_cliente, id_empresa, nome_cliente, servico, data_reserva, hora_reserva, num_pessoas, observacao, status_reserva)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'aberto')";
 
         $stmt_insert = $obj->prepare($query_insert);
 
@@ -172,7 +155,17 @@
             die("Erro na query: " . $obj->error);
         }
 
-        $stmt_insert->bind_param("iisssis", $id_cliente, $id_empresa, $servico, $data_reserva, $horario, $num_pessoas, $observacao);
+        $stmt_insert->bind_param(
+            "iissssis",
+            $id_cliente,
+            $id_empresa,
+            $nome_cliente,
+            $servico,
+            $data_reserva,
+            $horario,
+            $num_pessoas,
+            $observacao
+        );
 
         if (!$stmt_insert->execute()) {
             die("Erro ao cadastrar reserva: " . $stmt_insert->error);
@@ -209,7 +202,7 @@
 
                 <div class="user-info">
                     <span class="welcome-message">
-                        Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
+                        Olá, <?php echo htmlspecialchars($primeiro_nome); ?>!
                     </span>
                     <div class="profile-dropdown">
                         <button class="navbar-avatar" id="profileBtn">

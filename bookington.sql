@@ -37,8 +37,9 @@ CREATE TABLE IF NOT EXISTS funcionario (
 
 CREATE TABLE IF NOT EXISTS reserva (
     id_reserva INT AUTO_INCREMENT,
-    id_cliente INT NOT NULL,
+    id_cliente INT NULL,
     id_empresa INT NOT NULL,
+    nome_cliente VARCHAR(100) NULL,
     data_reserva DATE NOT NULL,
     hora_reserva TIME NOT NULL,
     status_reserva ENUM('aberto','reservado','cancelado') NOT NULL DEFAULT 'aberto',
@@ -50,3 +51,14 @@ CREATE TABLE IF NOT EXISTS reserva (
     FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON DELETE CASCADE,
     FOREIGN KEY (id_empresa) REFERENCES empresa(id_empresa) ON DELETE CASCADE
 );
+
+-- CRIAR FUNCIONÁRIO BASE: --
+
+USE bookington;
+
+INSERT INTO empresa (nome_empresa) VALUES ('Empresa Teste');
+
+INSERT INTO usuario (nome, data_nasc, cpf, telefone, email, senha, tipo_perfil) VALUES 
+('Usuário Teste', '1990-01-01', '123.456.789-00', '(11) 99999-9999', 'usuario@gmail.com', '$2y$10$9iWYtWVME6SiIcFAmkJiSO.Noo8eQDoetffZ4o0cdrm4/2r.qiP2u', 'funcionario');
+
+INSERT INTO funcionario (id_usuario, id_empresa) VALUES (1, 1);
