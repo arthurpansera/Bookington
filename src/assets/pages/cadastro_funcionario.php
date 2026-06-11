@@ -27,8 +27,6 @@
         $email = $_POST['email'];
         $empresa = trim($_POST['company']);
 
-        $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
-
         if (
             empty($_POST['name']) ||
             empty($_POST['cpf']) ||
@@ -43,9 +41,11 @@
             exit();
         }
 
-        if (!$data) {
-            $_SESSION['error_message'] = "Data inválida!";
-            header("Location: cadastro_funcionario.php");
+        $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
+
+        if (!$data || $data->format('d/m/Y') !== $_POST['birthYear']) {
+            $_SESSION['error_message'] = "Data de nascimento inválida!";
+            header("Location: cadastro_cliente.php");
             exit();
         }
 

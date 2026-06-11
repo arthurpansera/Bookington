@@ -24,8 +24,6 @@
         $nome = $_POST['name'];
         $cpf = $_POST['cpf'];
 
-        $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
-
         if (
             empty($_POST['name']) ||
             empty($_POST['cpf']) ||
@@ -36,6 +34,14 @@
             empty($_POST['confirm-pass'])
         ) {
             $_SESSION['error_message'] = "Preencha todos os campos obrigatórios.";
+            header("Location: cadastro_cliente.php");
+            exit();
+        }
+
+        $data = DateTime::createFromFormat('d/m/Y', $_POST['birthYear']);
+
+        if (!$data || $data->format('d/m/Y') !== $_POST['birthYear']) {
+            $_SESSION['error_message'] = "Data de nascimento inválida!";
             header("Location: cadastro_cliente.php");
             exit();
         }
