@@ -2,6 +2,10 @@
 session_start();
 include('../../../conecta_db.php');
 
+$redirect = isset($_SESSION['tipo_perfil']) && $_SESSION['tipo_perfil'] === 'funcionario'
+    ? 'home_funcionario.php'
+    : 'home_cliente.php';
+
 if(isset($_POST['email'])){
 
     $email = $_POST['email'];
@@ -23,6 +27,6 @@ if(isset($_POST['email'])){
     }
 }
 
-header("Location: home_cliente.php");
+header("Location: " . $redirect);
 exit();
 ?>

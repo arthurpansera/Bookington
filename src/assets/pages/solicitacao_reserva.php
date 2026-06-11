@@ -32,16 +32,32 @@
         exit();
     }
 
-    $tipo_perfil = 'cliente';
+    $tipo_perfil = null;
     $query_tipo = "SELECT tipo_perfil FROM usuario WHERE id_usuario = ?";
     $stmt_tipo = $obj->prepare($query_tipo);
     $stmt_tipo->bind_param("i", $_SESSION['id_usuario']);
     $stmt_tipo->execute();
     $resultado_tipo = $stmt_tipo->get_result();
 
+    $id_usuario = $_SESSION['id_usuario'];
+    
+    $query = "SELECT nome FROM usuario WHERE id_usuario = ?";
+    $stmt = $obj->prepare($query);
+    $stmt->bind_param('i', $id_usuario);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $usuario = $result->fetch_assoc();
+    $primeiro_nome = $usuario ? explode(' ', $usuario['nome'])[0] : 'Usuário';
+
     if ($resultado_tipo->num_rows > 0) {
         $usuario = $resultado_tipo->fetch_assoc();
         $tipo_perfil = $usuario['tipo_perfil'];
+    }
+
+    function homeRedirect($tipo_perfil) {
+        return $tipo_perfil === 'funcionario'
+            ? 'home_funcionario.php'
+            : 'home_cliente.php';
     }
 
     $label_nome = ($tipo_perfil === 'funcionario') ? 'Nome do cliente: *' : 'Nome: *';
@@ -58,6 +74,19 @@
         $horario      = trim($_POST['time']);
         $observacao   = trim($_POST['observation'] ?? '');
         $num_pessoas  = (int) $_POST['people'];
+
+        if (
+            empty($_POST['name']) ||
+            empty($_POST['company']) ||
+            empty($_POST['service']) ||
+            empty($_POST['date']) ||
+            empty($_POST['time']) ||
+            empty($_POST['people'])
+        ) {
+            $_SESSION['error_message'] = "Preencha todos os campos obrigatórios.";
+            header("Location: solicitacao_reserva.php");
+            exit();
+        }
 
         $data = DateTime::createFromFormat('d/m/Y', $_POST['date']);
 
@@ -150,7 +179,11 @@
         }
 
         $_SESSION['success_message'] = "Reserva cadastrada com sucesso!";
-        header("Location: home_cliente.php");
+        if ($tipo_perfil === 'funcionario') {
+            header("Location: home_funcionario.php");
+        } else {
+            header("Location: home_cliente.php");
+        }
         exit();
     }
 ?>
@@ -167,12 +200,34 @@
     <header>
         <div class="container">
             <nav class="nav">
-                <a href="../../../index.php" class="logo-container">
-                    <img src="../images/logo-bookington.png" alt="Logo Bookington" class="logo">
+
+                <a href="<?php echo homeRedirect($tipo_perfil); ?>" class="logo-container">
+                    <img src="../images/logo-bookington.png"
+                        alt="Logo Bookington"
+                        class="logo">
                 </a>
-                <a href="perfil.php" class="nav-profile">
-                    <img src="../images/icon-profile.png" alt="Perfil" class="profile-icon">
-                </a>
+
+                <div class="user-info">
+                    <span class="welcome-message">
+                        Bem-vindo, <?php echo htmlspecialchars($primeiro_nome); ?>!
+                    </span>
+                    <div class="profile-dropdown">
+                        <button class="navbar-avatar" id="profileBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </button>
+
+                        <div class="dropdown-menu" id="dropdownMenu">
+                            <a href="#" id="editarEmail">Alterar E-mail</a>
+                            <a href="#" id="editarSenha">Alterar Senha</a>
+                            <a href="#" onclick="confirmarLogout()">Sair</a>
+                        </div>
+                    </div>
+                </div>
+
             </nav>
         </div>
     </header>
@@ -181,7 +236,7 @@
         <section class="box-container">
             <section class="btn-back">
                 <div class="back-btn">
-                    <a href="home_cliente.php">Voltar</a>
+                    <a href="<?php echo homeRedirect($tipo_perfil); ?>">Voltar</a>
                 </div>
             </section>
 
@@ -281,5 +336,104 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../scripts/register-validation.js"></script>
+    
+    <script>
+        const profileBtn = document.getElementById("profileBtn");
+        const dropdownMenu = document.getElementById("dropdownMenu");
+
+        profileBtn.addEventListener("click", function(e){
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("show");
+        });
+
+        document.addEventListener("click", function(){
+            dropdownMenu.classList.remove("show");
+        });
+    </script>
+
+    <script>
+        document.getElementById("editarEmail").addEventListener("click", function(e){
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Alterar E-mail',
+                input: 'email',
+                inputLabel: 'Novo e-mail',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+
+                if(result.isConfirmed){
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'alterar_email.php';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'email';
+                    input.value = result.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+            });
+        });
+    </script>
+
+    <script>
+        document.getElementById("editarSenha").addEventListener("click", function(e){
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Nova senha',
+                input: 'password',
+                inputLabel: 'Digite a nova senha',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+
+                if(result.isConfirmed){
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'alterar_senha.php';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'senha';
+                    input.value = result.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+            });
+        });
+    </script>
+
+    <script>
+        function confirmarLogout() {
+            Swal.fire({
+                title: 'Deseja sair?',
+                text: 'Sua sessão será encerrada.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, sair',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'logout.php';
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>

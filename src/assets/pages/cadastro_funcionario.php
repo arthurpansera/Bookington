@@ -1,8 +1,25 @@
 <?php
     include('../../../conecta_db.php');
-    include('buscar_nome.php');
 
     session_start();
+
+    $obj = conecta_db();
+
+    $primeiro_nome = 'Usuário';
+
+    if (isset($_SESSION['id_usuario'])) {
+
+        $stmt = $obj->prepare("SELECT nome FROM usuario WHERE id_usuario = ?");
+        $stmt->bind_param("i", $_SESSION['id_usuario']);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $usuario = $result->fetch_assoc();
+
+        if ($usuario) {
+            $primeiro_nome = explode(' ', $usuario['nome'])[0];
+        }
+    }
 
     if (isset($_SESSION['error_message'])) {
         echo "<script>
@@ -38,7 +55,7 @@
             empty($_POST['confirm-pass'])
         ) {
             $_SESSION['error_message'] = "Preencha todos os campos obrigatórios.";
-            header("Location: cadastro_cliente.php");
+            header("Location: cadastro_funcionario.php");
             exit();
         }
 
@@ -46,7 +63,7 @@
 
         if (!$data || $data->format('d/m/Y') !== $_POST['birthYear']) {
             $_SESSION['error_message'] = "Data de nascimento inválida!";
-            header("Location: cadastro_cliente.php");
+            header("Location: cadastro_funcionario.php");
             exit();
         }
 
@@ -59,8 +76,6 @@
         }
 
         $senha = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-        $obj = conecta_db();
 
         if (!$obj) {
             die("Erro na conexão.");
@@ -80,7 +95,7 @@
 
         if ($stmt_check_email->num_rows > 0 || $stmt_check_cpf->num_rows > 0) {
             $_SESSION['error_message'] = "Usuário já cadastrado!";
-            header("Location: cadastro_cliente.php");
+            header("Location: cadastro_funcionario.php");
             exit();
         }
 
@@ -262,6 +277,104 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../scripts/register-validation.js"></script>
+
+    <script>
+        const profileBtn = document.getElementById("profileBtn");
+        const dropdownMenu = document.getElementById("dropdownMenu");
+
+        profileBtn.addEventListener("click", function(e){
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("show");
+        });
+
+        document.addEventListener("click", function(){
+            dropdownMenu.classList.remove("show");
+        });
+    </script>
+
+    <script>
+        document.getElementById("editarEmail").addEventListener("click", function(e){
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Alterar E-mail',
+                input: 'email',
+                inputLabel: 'Novo e-mail',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+
+                if(result.isConfirmed){
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'alterar_email.php';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'email';
+                    input.value = result.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+            });
+        });
+    </script>
+
+    <script>
+        document.getElementById("editarSenha").addEventListener("click", function(e){
+            e.preventDefault();
+
+            Swal.fire({
+                title: 'Nova senha',
+                input: 'password',
+                inputLabel: 'Digite a nova senha',
+                showCancelButton: true,
+                confirmButtonText: 'Salvar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+
+                if(result.isConfirmed){
+
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = 'alterar_senha.php';
+
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'senha';
+                    input.value = result.value;
+
+                    form.appendChild(input);
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+
+            });
+        });
+    </script>
+
+    <script>
+        function confirmarLogout() {
+            Swal.fire({
+                title: 'Deseja sair?',
+                text: 'Sua sessão será encerrada.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, sair',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#6B1020'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'logout.php';
+                }
+            });
+        }
+    </script>
     
 </body>
 </html>

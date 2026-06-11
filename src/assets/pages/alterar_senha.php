@@ -2,6 +2,10 @@
 session_start();
 include('../../../conecta_db.php');
 
+$redirect = isset($_SESSION['tipo_perfil']) && $_SESSION['tipo_perfil'] === 'funcionario'
+    ? 'home_funcionario.php'
+    : 'home_cliente.php';
+
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../../../index.php");
     exit();
@@ -12,21 +16,13 @@ if (isset($_POST['senha'])) {
     $senha = trim($_POST['senha']);
     $id_usuario = $_SESSION['id_usuario'];
 
-    if (strlen($senha) < 6) {
-        $_SESSION['error_message'] =
-            "A senha deve possuir pelo menos 6 caracteres.";
-
-        header("Location: home_cliente.php");
-        exit();
-    }
-
     $obj = conecta_db();
 
     if (!$obj) {
         $_SESSION['error_message'] =
             "Erro de conexão com o banco de dados.";
 
-        header("Location: home_cliente.php");
+        header("Location: " . $redirect);
         exit();
     }
 
@@ -59,6 +55,6 @@ if (isset($_POST['senha'])) {
     }
 }
 
-header("Location: home_cliente.php");
+header("Location: " . $redirect);
 exit();
 ?>
