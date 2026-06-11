@@ -197,7 +197,7 @@
         </div>
     </div>
 
-    <a href="solicitar-reserva.php" class="btn-success-float">+ Solicitar reserva</a>
+    <a href="solicitacao_reserva.php" class="btn-success-float">+ Solicitar reserva</a>
 
     <footer class="footer">
         <p>&copy; 2026 - Bookington - Reservas inteligentes, resultados eficientes. Todos os direitos reservados.</p>

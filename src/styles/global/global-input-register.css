@@ -205,4 +205,42 @@ select.mid-inputUser option {
   .container-row {
     gap: 1.5rem;
   }
+  
+}
+/* Linha dos três campos: Data / Horário / Número de pessoas */
+.container-row--three {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 2rem;
+}
+
+.small-inputBox {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.small-inputUser {
+    width: 140px;
+    height: 40px;
+    background-color: var(--light-grey);
+    border-radius: 8px;
+    border: 1px solid var(--dark-grey);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    padding-left: 0.8rem;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 991.98px) {
+    .container-row--three {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .small-inputUser {
+        width: 100%;
+    }
 }
